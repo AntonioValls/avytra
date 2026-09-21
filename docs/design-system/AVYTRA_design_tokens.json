@@ -1,0 +1,24 @@
+{
+  "brand": "AVYTRA",
+  "colors": {
+    "ink": "#101828",
+    "lime": "#B8F34A",
+    "blue": "#4E6BFF",
+    "mist": "#F5F7FA",
+    "slate": "#667085",
+    "white": "#FFFFFF"
+  },
+  "typography": {
+    "display": "Lato Heavy",
+    "body": "Lato",
+    "fallback": "Arial, sans-serif"
+  },
+  "radius": {
+    "sm": 12,
+    "md": 18,
+    "lg": 24,
+    "pill": 999
+  },
+  "tagline": "Empresas que cambian de manos.",
+  "action_line": "Compra. Vende. Continúa."
+}
