@@ -1,0 +1,126 @@
+# 08 — Área pública: páginas y flujos
+
+Sin registro para consultar. Toda la parte pública se sirve con un layout propio (`layouts/public`) distinto del panel y de la administración.
+
+## Mapa de rutas públicas
+
+| Ruta | Nombre | Contenido |
+|---|---|---|
+| `/` | `home` | Home |
+| `/empresas` | `listings.index` | Explorar con filtros (query string) |
+| `/empresas/{slug}` | `listings.show` | Ficha de publicación |
+| `/empresas/categoria/{category:slug}` | `categories.show` | Explorar filtrado por sector, con texto introductorio propio |
+| `/empresas/provincia/{province:slug}` | `provinces.show` | Explorar filtrado por provincia (solo indexable si tiene publicaciones; ver SEO) |
+| `/negocios-online` | `listings.online` | Alias de explorar con `type=online` y texto propio |
+| `/publicar` | `publish.landing` | Landing "Vende tu empresa": explica el proceso y lleva a registro/wizard |
+| `/como-funciona` | `how-it-works` | Explicación breve (opcional en MVP; contenido estático) |
+| `/aviso-legal`, `/privacidad`, `/cookies` | `legal.*` | Estáticas |
+| `/publicaciones/{slug}/reportar` | `listings.report` | Se abre como modal desde la ficha; ruta directa opcional |
+| `/sitemap.xml`, `/robots.txt` | — | Ver SEO |
+
+Rutas de auth (Fortify): `/login`, `/register`, `/forgot-password`, etc. (existentes).
+
+## Home
+
+Objetivo: comunicar en dos segundos qué es AVYTRA y llevar a explorar o publicar.
+
+Secciones (de arriba abajo):
+
+1. **Hero.** Titular "Encuentra un negocio que ya está en marcha." Subtítulo: "Empresas y negocios en venta o traspaso, con datos claros y disponibilidad confirmada." Buscador simple (texto + provincia opcional) → `/empresas`. CTA secundaria "Publicar empresa" (Lime).
+2. **Accesos rápidos.** Chips: sectores principales, "Negocios online", "Traspasos", provincias con más publicaciones (calculado, cacheado).
+3. **Últimas publicaciones.** 6–8 tarjetas de publicaciones publicadas más recientes.
+4. **Cómo funciona.** Tres pasos para comprador y tres para vendedor. Flechas de continuidad (lenguaje gráfico de marca).
+5. **Confianza.** Bloque explicando "Disponibilidad confirmada": las publicaciones sin confirmar se pausan automáticamente.
+6. **CTA final.** "¿Y si tu próxima empresa ya existe?" / "Tu negocio puede tener una siguiente etapa."
+7. Footer con enlaces a categorías, provincias con publicaciones, legales.
+
+Sin carruseles automáticos, sin contadores animados, sin testimonios inventados.
+
+## Explorar empresas (`/empresas`)
+
+Componente Livewire de página con filtros en la URL (`#[Url]`) para que sean compartibles e indexables cuando proceda.
+
+### Filtros esenciales del MVP
+
+| Filtro | Control Flux | Parámetro |
+|---|---|---|
+| Texto | `flux:input` con icono, `wire:model.live.debounce.400ms` | `q` |
+| Sector | `flux:select` (variant listbox) | `sector` |
+| Tipo de negocio | `flux:radio.group` segmentado o `flux:select` | `tipo` (`fisico`, `online`, `hibrido`) |
+| Tipo de operación | `flux:select` | `operacion` |
+| Provincia | `flux:select` con búsqueda (variant listbox `searchable`) | `provincia` |
+| Precio | dos `flux:input type=number` (mín/máx) o `flux:slider` Pro | `precio_min`, `precio_max` |
+| Orden | `flux:select` | `orden` (`recientes` por defecto, `precio_asc`, `precio_desc`, `confirmadas` = última confirmación) |
+
+Fuera del MVP: facturación, antigüedad, negociable, radio geográfico, subsector como filtro (sí como chip visual).
+
+### Comportamiento
+
+- Móvil: filtros en un `flux:modal` (variant `flyout`) abierto con botón "Filtros (3)"; escritorio: barra lateral izquierda fija.
+- Resultados: grid de tarjetas 1/2/3 columnas. Paginación `flux:pagination` (24 por página). **Siempre paginado.**
+- Estado vacío: mensaje claro + botón "Quitar filtros" + CTA "¿Tienes un negocio? Publícalo gratis".
+- Query: `Listing::publiclyVisible()` con `whereHas('business', ...)` para sector/tipo y `whereHas('business.location', ...)` para provincia; eager loading `business.category`, `business.location.province`, `business.media`. Búsqueda de texto con `LIKE` sobre título y nombre; FULLTEXT cuando haga falta.
+- Se muestra el número total de resultados ("42 empresas").
+
+### Vista de mapa
+
+Fuera del MVP como pestaña completa. Phase 5 añade un mapa opcional en explorar (toggle "Ver mapa") que muestra las publicaciones **con ubicación pública** de la página actual, con círculos para aproximadas. Ver [10-location-and-maps.md](10-location-and-maps.md).
+
+## Tarjeta de publicación
+
+Componente Blade puro (`<x-listing-card :listing="$listing" />`), no Livewire. Datos:
+
+- Portada (o placeholder con símbolo AVYTRA) 16:10, `loading="lazy"`, `width`/`height` explícitos.
+- Badge de tipo de operación (Traspaso, Venta, Socio…) y badge de tipo de negocio si es online/híbrido.
+- Título de la publicación (máx. 2 líneas).
+- Sector · Ubicación pública ("Castellón de la Plana, Castellón", "Provincia de Castellón" o "Online").
+- Precio ("485.000 €", "180.000–220.000 €", "Consultar"), con "Negociable" si procede.
+- Hasta tres atributos pequeños: facturación si pública, empleados, año de inicio.
+- Pie: "Confirmada hace 8 días" (icono check). Si `sold`: badge "Vendida".
+
+Toda la tarjeta es un enlace con `wire:navigate`.
+
+## Ficha de publicación (`/empresas/{slug}`)
+
+Controlador clásico + vista Blade (no necesita Livewire salvo para el modal de reporte y el botón "Mostrar teléfono"). Solo accesible si `isPubliclyVisible()`; en otro caso: propietario y superadmin ven la ficha con banner "Esta publicación no es pública (Borrador/Pausada/...)", el resto recibe 404 (o 410 para archivadas, ver SEO).
+
+Estructura:
+
+1. **Cabecera:** breadcrumbs (Inicio › Empresas › Sector › Título), badges (operación, tipo, "Vendida" si procede), título, línea de ubicación pública + sector, "Disponibilidad confirmada hace N días".
+2. **Galería:** portada grande + miniaturas; lightbox con Alpine (mismo patrón que ParkingParaCamiones, sin librería externa). Sin imágenes: placeholder de marca.
+3. **Columna principal:**
+   - Resumen de datos clave en tarjetas: precio, facturación (si pública), beneficio (si pública), empleados, año de inicio, local (propiedad/alquiler).
+   - Descripción (párrafos).
+   - Puntos destacados.
+   - Motivo de la venta.
+   - Qué se incluye (lista con iconos check/cross, solo lo indicado).
+   - Información económica pública (tabla; "Consultar" para `on_request`; las `hidden` no aparecen).
+   - Negocio online (si procede): tipo, plataforma, métricas públicas, canales.
+   - Ubicación: mapa según visibilidad + texto ("Zona aproximada en Castellón de la Plana"). Sin mapa si `hidden`.
+4. **Columna lateral (sticky en escritorio, al final en móvil con barra fija inferior "Contactar"):**
+   - **Contactar con el propietario**: nombre de contacto, método preferido destacado, resto de canales. Teléfono/WhatsApp tras clic "Mostrar" (Livewire, rate limit) para dificultar scraping.
+   - Datos de la empresa: nombre comercial, sector, tipo, forma jurídica si visible, web si visible.
+   - "Publicada el …" y "Disponibilidad confirmada hace N días".
+   - Enlace "Reportar esta publicación" (modal).
+   - Compartir (enlace copiar; sin SDKs sociales).
+5. **Relacionadas:** 3–4 publicaciones del mismo sector o provincia.
+6. JSON-LD y metadatos según [15-seo.md](15-seo.md).
+
+### Ficha de publicación vendida
+
+Mismo layout con banner "Esta empresa ya ha cambiado de manos" y sin bloque de contacto. Se mantiene pública `sold_visible_days` (configurable, 30 por defecto) para transmitir que la plataforma funciona; después, `noindex` y fuera de listados.
+
+## Reportar publicación
+
+Modal Flux desde la ficha. Campos: motivo (`flux:radio.group`), mensaje opcional, email opcional (obligatorio si no hay sesión, para poder responder; no se publica). Honeypot + rate limit por IP (3 por hora) + máximo un reporte abierto por listing y `ip_hash`. Confirmación con `flux:toast`. El superadmin lo ve en `/admin/reportes`.
+
+## Landing "Publicar" (`/publicar`)
+
+Explica: gratis, pasos del wizard, privacidad (ubicación aproximada, cifras ocultables), confirmación de disponibilidad. CTA → registro (o wizard si ya hay sesión). Incluye "¿Prefieres que lo hagamos por ti?" con teléfono/email de AVYTRA (dato de config, no de un usuario), para el público poco tecnológico.
+
+## Estados y errores
+
+- 404 con layout público y buscador.
+- 410 para publicaciones archivadas/eliminadas que tuvieron URL pública.
+- Mensaje de mantenimiento con marca.
+- Todas las páginas responsive; navegación móvil con `flux:sidebar` colapsable del layout público o `flux:navbar` + menú.
