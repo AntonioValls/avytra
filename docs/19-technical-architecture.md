@@ -29,8 +29,9 @@ app/
 ├── Livewire/
 │   ├── Actions/                 (existente: Logout)
 │   └── Forms/                   BusinessForm, ListingWizard/{OperationStep, BasicInfoStep, ...}, ContactForm, ...
+├── Concerns/                    (existente) PasswordValidationRules, ProfileValidationRules,
+│                                TracksAuthorship, HasSlugHistory
 ├── Models/
-│   ├── Concerns/                TracksAuthorship, HasSlugHistory
 │   └── ...                      User, Business, Listing, Location, OnlineProfile, Category, Region,
 │                                Province, Municipality, ListingFinancialMetric, ListingEvent,
 │                                ListingSlugRedirect, ListingReport, AuditLog

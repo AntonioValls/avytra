@@ -40,12 +40,12 @@ Cada fase es pequeña, verificable y se ejecuta una por una. Ninguna fase empiez
 4. Traducción al español de todas las vistas existentes (auth, settings, sidebar, emails de Fortify) mediante `lang/es.json`.
 5. Roles: migración `users.role`, enum `UserRole`, `User::isSuperadmin()`, comando `avytra:superadmin {email}`, middleware `EnsureUserIsSuperadmin` (404), ruta `/admin` con página vacía "Administración".
 6. Panel: ruta `/dashboard` → `/panel` (nombre `dashboard`), página inicial con estado vacío.
-7. Base de auditoría: tabla `audit_logs`, modelo, `AuditLogger` mínimo, trait `TracksAuthorship` (sin modelos que lo usen aún).
+7. Base de auditoría: tabla `audit_logs`, modelo y `AuditLogger` mínimo. El trait `TracksAuthorship` se crea en Phase 2 junto con `Business` (Larastan no analiza traits sin uso).
 8. Rate limiters nombrados en `AppServiceProvider` (registro, público).
 9. README con instrucciones de arranque (`composer setup`, `composer run dev`).
 
 **Criterios de aceptación:** app arranca con marca AVYTRA en español, modo claro; login/registro funcionan; usuario normal no ve `/admin` (404); superadmin creado por comando accede; `composer test` pasa.
-**Tests esperados:** existentes adaptados al español; `UserRole`; comando superadmin; middleware admin (404/200); `TracksAuthorship` con un modelo de prueba o diferido a Phase 2; invariante de config de vigencia.
+**Tests esperados:** existentes adaptados al español; comando superadmin y no asignación masiva del rol; middleware admin (404/200); `AuditLogger`; home pública; invariante de config de vigencia y locale/zona horaria.
 **Terminado cuando:** DoD + captura de home/login/panel en móvil y escritorio revisadas por el propietario.
 
 ---
@@ -59,7 +59,7 @@ Cada fase es pequeña, verificable y se ejecuta una por una. Ninguna fase empiez
 
 1. Migraciones y modelos: `categories`, `regions`, `provinces`, `municipalities`, `businesses`, `locations`, `online_profiles`. Enums asociados. Factories con estados. Seeders: categorías (contenido real), geografía de España desde `database/data/spain/` (fuente documentada) mediante comando `avytra:import-geography`.
 2. `BusinessPolicy` + tests completos de la matriz.
-3. Actions: `CreateBusiness`, `UpdateBusiness`, `SaveBusinessLocation` (incluye `PublicPointDeriver` con jitter determinista y centroides), `TransferBusinessOwnership`.
+3. Trait `App\Concerns\TracksAuthorship` (creado aquí y aplicado a `Business`) y Actions: `CreateBusiness`, `UpdateBusiness`, `SaveBusinessLocation` (incluye `PublicPointDeriver` con jitter determinista y centroides), `TransferBusinessOwnership`.
 4. Livewire: `pages::businesses.index` (tarjetas), `pages::businesses.form` (crear/editar) con Form Objects; secciones condicionadas por tipo; selects de provincia/municipio (`flux:select searchable`, `flux:autocomplete`); campos de ubicación **sin mapa todavía** (lat/lng se rellenan en Phase 5; en Phase 2 se acepta `city_only`/centroide).
 5. Admin: `admin/businesses` (tabla, filtros, crear con selector de propietario, editar, cambiar propietario con audit).
 6. Decidir y aplicar el efecto de eliminar cuenta sobre empresas (ADR).

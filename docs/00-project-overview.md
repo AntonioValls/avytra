@@ -66,15 +66,7 @@ El repositorio contiene el **Laravel Livewire Starter Kit** oficial sin modifica
 - Tests Pest de auth, dashboard y settings (14 archivos).
 - CI en GitHub Actions (`composer ci:check` = Pint + Larastan + tests).
 
-Detalles a corregir en Phase 1 detectados durante la inspección:
-
-- `.env.example` tiene `DB_CONNECTION=avytra` (no existe esa conexión; debe ser `mysql`) y `DB_DATABASE=laravel`.
-- `APP_LOCALE`, `APP_FALLBACK_LOCALE` y `APP_FAKER_LOCALE` están en `en`/`en_US`; deben pasar a `es`/`es_ES`.
-- `config/app.php` tiene `timezone => 'UTC'`; debe pasar a `Europe/Madrid`.
-- La fuente configurada es `Instrument Sans`; la marca usa **Lato**.
-- El `<html>` del layout con sidebar lleva `class="dark"` fijo; AVYTRA es una interfaz luminosa y debe arrancar en modo claro.
-- Enlaces del sidebar al repositorio y documentación del starter kit deben eliminarse.
-- `README.md` contiene solo el nombre del proyecto.
+Detalles detectados durante la inspección y **corregidos en Phase 1**: `.env.example` con conexión inexistente, locales en inglés, zona horaria UTC, fuente Instrument Sans, `class="dark"` fijo, enlaces del starter kit y README vacío. Ver `CHANGELOG.md`.
 
 ## Recursos de marca
 

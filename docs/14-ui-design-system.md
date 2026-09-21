@@ -47,7 +47,9 @@ Contraste: Ink sobre White 16.4:1; Ink sobre Lime alto. Texto Slate sobre White 
 
 Nota sobre `--color-accent-content`: Flux lo usa para enlaces y texto "accent" (por ejemplo `flux:link`). Lime como texto sobre blanco no cumple contraste, por eso se mapea a Ink y los enlaces de contenido usan Transfer Blue explícitamente (`text-transfer`). Se verificará en Phase 1 el comportamiento real de Flux 2.20 con estos tokens y se ajustará el mapeo si algún componente queda ilegible.
 
-Modo oscuro: **no** en el MVP público. La marca es luminosa. El starter kit trae selector de apariencia (`settings/appearance`); se mantiene para el panel con paleta oscura basada en Ink, pero la parte pública fuerza modo claro. Se elimina el `class="dark"` fijo del layout.
+Modo oscuro: **no** en el MVP público. La marca es luminosa. El starter kit trae selector de apariencia (`settings/appearance`); se mantiene para el panel (opciones claro/oscuro, sin "sistema"), pero la parte pública y las páginas de auth fuerzan modo claro. Implementado en Phase 1: `partials/head` fija `flux.appearance = light` cuando el usuario no ha elegido nada, antes de `@fluxAppearance`; el layout público no incluye `@fluxAppearance`.
+
+Nota de implementación (Phase 1): el layout `layouts/app` recibe la prop `area` (`app` | `admin`), no `variant`, porque Blaze pliega los componentes Blade y una variable `$variant` del layout se filtraba a los iconos de Flux. Evitar en layouts nombres de variables que coincidan con props habituales de Flux (`variant`, `size`, `color`, `icon`).
 
 ## Tipografía
 
@@ -61,7 +63,7 @@ Lato (Google Fonts o Bunny Fonts, self-host en Phase 10 si se prefiere): Heavy (
 | Texto | 16 / 24 | Regular |
 | Etiqueta | 12 / 16, tracking +8 % (`tracking-wider uppercase`) | Semibold |
 
-`@fonts` de Flux carga Inter por defecto; se sustituye por el `<link>` de Lato en `partials/head.blade.php` y se declara `--font-sans` en el tema.
+Las fuentes se autoalojan: `vite.config.js` declara `bunny('Lato', { weights: [400, 700, 900] })` y la directiva `@fonts` emite el CSS compilado por Vite (sin peticiones a CDN). `--font-sans` se declara en el tema. Los pesos 500/600 no existen en Lato; `font-medium`/`font-semibold` renderizan con 700.
 
 ## Logotipo
 

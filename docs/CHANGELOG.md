@@ -2,6 +2,33 @@
 
 Formato: una sección por fase cerrada, con fecha. Cambios de documentación relevantes también se anotan.
 
+## [Phase 1] — 2026-09-21 — Fundamentos del proyecto
+
+### Añadido
+- `config/avytra.php` (vigencia, contacto, reportes, ubicación, mapa, geocodificación, soporte, límites) y variables `AVYTRA_*` en `.env.example`.
+- Enum `UserRole`; migración `users.role`, `users.phone`, `users.is_assisted`; `User::isSuperadmin()`; estados de factory `superadmin()` y `assisted()`.
+- Comando `avytra:superadmin {email} [--revoke]`.
+- Middleware `EnsureUserIsSuperadmin` (alias `superadmin`, responde 404) y `routes/admin.php` con `/admin`.
+- Tabla `audit_logs`, modelo `AuditLog`, factory y `App\Support\Audit\AuditLogger`.
+- `App\Support\Seo\PageMeta` y layout público `layouts/public` con header, footer y metadatos.
+- Componentes `x-app-logo` (wordmark) y `x-app-logo-icon` (símbolo) con los SVG de marca; favicon, apple-touch-icon, app icon y `og-default.png`.
+- Traducciones `lang/es.json` y `lang/es/*.php`.
+- Rate limiters `register` y `public`.
+- Tests: acceso admin, comando superadmin, audit logger, configuración, home pública.
+- README de arranque y `.claude/launch.json` para el servidor de previsualización.
+
+### Cambiado
+- Locale `es`, zona horaria `Europe/Madrid`, Fortify `home` → `/panel`; `/dashboard` pasa a `/panel` manteniendo el nombre `dashboard`.
+- `app.css`: tokens de marca, Lato, accent de Flux en Lime/Ink. Vite carga Lato autoalojada en lugar de Instrument Sans.
+- Layouts `app` (prop `area`, sidebar Ink en administración, sin enlaces del starter kit), `auth` (claros, logo real) y `partials/head` (modo claro por defecto).
+- Página de apariencia sin opción "Sistema".
+- `SecurityTest` usa `__()` para las cadenas.
+- `composer types:check` con `--memory-limit=1G`; conexión mysql con `engine = InnoDB`.
+- `Model::preventLazyLoading` activo fuera de producción.
+
+### Eliminado
+- `welcome.blade.php`, `placeholder-pattern.blade.php`, enlaces a repositorio/documentación del starter kit, `lang/en` publicado.
+
 ## [Phase 0] — 2026-09-21 — Documentación y arquitectura
 
 ### Añadido

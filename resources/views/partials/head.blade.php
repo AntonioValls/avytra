@@ -2,7 +2,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
 <title>
-    {{ filled($title ?? null) ? $title.' - '.config('app.name', 'Laravel') : config('app.name', 'Laravel') }}
+    {{ filled($title ?? null) ? $title.' · '.config('app.name', 'AVYTRA') : config('app.name', 'AVYTRA') }}
 </title>
 
 <link rel="icon" href="/favicon.ico" sizes="any">
@@ -12,4 +12,12 @@
 @fonts
 
 @vite(['resources/css/app.css', 'resources/js/app.js'])
-@fluxAppearance
+@if ($appearance ?? true)
+    {{-- AVYTRA starts in light mode; Flux would otherwise follow the OS. Users can still pick dark in Settings. --}}
+    <script>
+        if (! window.localStorage.getItem('flux.appearance')) {
+            window.localStorage.setItem('flux.appearance', 'light');
+        }
+    </script>
+    @fluxAppearance
+@endif

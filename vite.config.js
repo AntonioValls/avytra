@@ -13,8 +13,8 @@ export default defineConfig({
             ],
             refresh: true,
             fonts: [
-                bunny('Instrument Sans', {
-                    weights: [400, 500, 600],
+                bunny('Lato', {
+                    weights: [400, 700, 900],
                 }),
             ],
         }),

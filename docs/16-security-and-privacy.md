@@ -35,7 +35,7 @@
 | Subida de imágenes | 30/hora por usuario |
 | Geocodificación | 1/s global + 20/hora por usuario |
 
-Definidos en `AppServiceProvider` o un `RateLimitServiceProvider` con nombres, aplicados con `throttle:{nombre}` o `RateLimiter` en acciones Livewire.
+Definidos en `AppServiceProvider` con nombres (`register` y `public` desde Phase 1), aplicados con `throttle:{nombre}` o `RateLimiter` en acciones Livewire. Fortify no permite asignar un limitador solo a la ruta de registro por configuración; el limitador `register` se aplicará con un middleware propio sobre `POST /register` (o junto al honeypot) en Phase 10.
 
 ## Uploads
 
