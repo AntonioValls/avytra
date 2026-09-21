@@ -49,7 +49,7 @@ Progreso: `flux:progress` o lista de pasos con estado (completado/actual/pendien
 
 | Paso | Contenido | Componentes Flux | Validación mínima |
 |---|---|---|---|
-| 1. Empresa y operación | Seleccionar empresa existente o "Nueva"; tipo de negocio (`physical`/`online`/`hybrid`); tipo de operación | `flux:select`, `flux:radio.group variant="cards"` con icono y descripción | tipo de negocio, operación |
+| 1. Empresa y operación | Seleccionar empresa existente o "Nueva"; tipo de negocio (`physical`/`online`/`hybrid`); qué se ofrece (uno o varios tipos de operación) y cuál es la principal; porcentaje y condiciones si la operación es parcial | `flux:select`, `flux:radio.group variant="cards"` (tipo de negocio), `flux:checkbox.group variant="cards"` (operaciones) + `flux:radio.group` (principal, solo si hay más de una), `flux:input type=number` con sufijo % | tipo de negocio, ≥1 operación, principal coherente |
 | 2. Información básica | Nombre comercial, sector, subsector, descripción corta, descripción completa, año, empleados | `flux:input`, `flux:select variant="listbox" searchable`, `flux:textarea` | nombre, sector |
 | 3. Características | Motivo de la venta, puntos destacados (hasta 5), qué se incluye (checkboxes tri-estado), local alquiler/propiedad | `flux:textarea`, `flux:input` repetible, `flux:checkbox.group`, `flux:switch` | ninguna |
 | 4. Información económica | Modo de precio + importes, negociable; facturación, beneficio, alquiler; "Añadir más datos" plegable con el resto | `flux:radio.group` (exacto/rango/consultar), `flux:input type=number` con sufijo €, `flux:select` para divulgación, `flux:accordion` | modo de precio coherente |

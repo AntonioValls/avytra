@@ -17,7 +17,7 @@
 | Creación de empresas | Feature (Livewire) | Crear física exige ubicación al publicar; online no admite ubicación; varias empresas por usuario |
 | Estados y transiciones | Unit + Feature | Tabla completa de transiciones permitidas/prohibidas (dataset); efectos en timestamps; eventos registrados |
 | Publicación | Feature (Livewire wizard) | Validación por paso; validación "listo para publicar"; borrador persiste entre pasos; título/slug sugeridos |
-| Renovación y caducidad | Feature (comando + `travel`) | Avisos a día 45/55, pausa a 60, idempotencia, reset al confirmar, enlace firmado válido/caducado/manipulado |
+| Renovación y caducidad | Feature (comando + `travel`) | Avisos a día 45/55, pausa a 60, idempotencia, reset al confirmar, página de confirmación exige sesión y propiedad, firma caducada no actúa sola |
 | Visibilidad | Feature (HTTP) | Proyección pública no filtra datos privados por cada `LocationVisibility` y `Disclosure`; pausada = 404 anónimo / 200 propietario; vendida antigua = noindex; archivada = 410 |
 | Contacto | Feature | Canal coherente con preferencia; teléfono solo tras revelar; rate limit |
 | Filtros y búsqueda | Feature (Livewire) | Cada filtro esencial; paginación; orden; estado vacío |

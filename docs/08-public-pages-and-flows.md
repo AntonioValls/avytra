@@ -47,7 +47,7 @@ Componente Livewire de página con filtros en la URL (`#[Url]`) para que sean co
 | Texto | `flux:input` con icono, `wire:model.live.debounce.400ms` | `q` |
 | Sector | `flux:select` (variant listbox) | `sector` |
 | Tipo de negocio | `flux:radio.group` segmentado o `flux:select` | `tipo` (`fisico`, `online`, `hibrido`) |
-| Tipo de operación | `flux:select` | `operacion` |
+| Tipo de operación | `flux:select` | `operacion` (coincide si la publicación ofrece ese tipo entre los suyos, vía `listing_operation_types`) |
 | Provincia | `flux:select` con búsqueda (variant listbox `searchable`) | `provincia` |
 | Precio | dos `flux:input type=number` (mín/máx) o `flux:slider` Pro | `precio_min`, `precio_max` |
 | Orden | `flux:select` | `orden` (`recientes` por defecto, `precio_asc`, `precio_desc`, `confirmadas` = última confirmación) |
@@ -71,7 +71,7 @@ Fuera del MVP como pestaña completa. Phase 5 añade un mapa opcional en explora
 Componente Blade puro (`<x-listing-card :listing="$listing" />`), no Livewire. Datos:
 
 - Portada (o placeholder con símbolo AVYTRA) 16:10, `loading="lazy"`, `width`/`height` explícitos.
-- Badge de tipo de operación (Traspaso, Venta, Socio…) y badge de tipo de negocio si es online/híbrido.
+- Badge de la operación principal (Traspaso, Venta, Socio…) más "+1"/"+2" si la publicación ofrece varias; badge de tipo de negocio si es online/híbrido.
 - Título de la publicación (máx. 2 líneas).
 - Sector · Ubicación pública ("Castellón de la Plana, Castellón", "Provincia de Castellón" o "Online").
 - Precio ("485.000 €", "180.000–220.000 €", "Consultar"), con "Negociable" si procede.

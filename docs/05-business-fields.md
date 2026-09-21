@@ -50,7 +50,10 @@ Ver [11-online-businesses.md](11-online-businesses.md). Solo `online_business_ty
 
 | Campo | Columna | Oblig. | Visib. | Notas |
 |---|---|---|---|---|
-| Tipo de operación | `operation_type` | OB | PUB | Enum. |
+| Tipos de operación | pivote `listing_operation_types` | OB (≥1) | PUB | Enum multi-selección: el vendedor marca todo lo que ofrece (p. ej. venta completa y entrada de socio). |
+| Operación principal | `primary_operation_type` | OB | PUB | Una de las seleccionadas; badge principal y título sugerido. Si solo hay una, se asigna sola. |
+| Porcentaje ofrecido | `stake_percent` | OPC | PUB | Solo para `partial_sale`, `partner_entry`, `investor_search`. |
+| Condiciones de la operación | `operation_notes` | OPC | PUB | Texto corto ("Se busca socio con perfil comercial", "Mínimo 30 %"). |
 | Título | `title` | OB | PUB | Máx. 90 caracteres. Se sugiere automáticamente ("Traspaso de panadería en Castellón") y el usuario puede editarlo. |
 | Slug | `slug` | auto | PUB | Derivado del título; único; con historial de redirecciones. |
 | Motivo de la venta | `reason_for_sale` | REC | PUB | Texto corto. Aporta mucha confianza al comprador. |
@@ -111,9 +114,9 @@ Ver [12-contact-system.md](12-contact-system.md). Obligatorio: `preferred_contac
 ## Resumen de obligatorios para publicar
 
 Empresa: nombre, tipo, sector, descripción (≥200 caracteres). Físico/híbrido: provincia y municipio. Online/híbrido: tipo de negocio online.
-Publicación: tipo de operación, título, modo de precio (y valores coherentes), método de contacto preferido con su canal.
+Publicación: al menos un tipo de operación (con operación principal), título, modo de precio (y valores coherentes), método de contacto preferido con su canal.
 
-Todo lo demás es recomendado u opcional. Once campos obligatorios en total; el resto de la ficha se enriquece progresivamente.
+Todo lo demás es recomendado u opcional. Doce campos obligatorios en total; el resto de la ficha se enriquece progresivamente.
 
 ## Campos que se han descartado a propósito
 

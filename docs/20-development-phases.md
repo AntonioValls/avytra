@@ -77,7 +77,7 @@ Cada fase es pequeña, verificable y se ejecuta una por una. Ninguna fase empiez
 
 **Tareas**
 
-1. Migraciones y modelos: `listings`, `listing_financial_metrics`, `listing_events`, `listing_slug_redirects`. Enums `ListingStatus` (con tabla de transiciones), `OperationType`, `PriceDisclosure`, `Disclosure`, `FinancialMetric`, `ContactMethod`, `ListingEventType`. Factories.
+1. Migraciones y modelos: `listings`, `listing_operation_types`, `listing_financial_metrics`, `listing_events`, `listing_slug_redirects`. Enums `ListingStatus` (con tabla de transiciones), `OperationType`, `PriceDisclosure`, `Disclosure`, `FinancialMetric`, `ContactMethod`, `ListingEventType`. Factories.
 2. `ListingPolicy` + tests de matriz.
 3. Actions de transición (todos los de [06](06-listing-lifecycle.md)) + `CreateListingDraft` + `ChangeListingSlug` + validador "listo para publicar" (`ListingPublishabilityValidator` o reglas en `PublishListing`).
 4. Wizard Livewire de 8 pasos con Form Objects, persistencia por paso, progreso, guardar y salir, modo edición, título sugerido, prefill de contacto visible. Paso 7 (imágenes) muestra placeholder "disponible en Phase 6" o se implementa con subida básica sin conversiones (decisión al llegar: preferible dejar el paso con aviso y no hacer trabajo desechable).
@@ -151,7 +151,7 @@ Cada fase es pequeña, verificable y se ejecuta una por una. Ninguna fase empiez
 **Objetivo:** recordatorios, confirmación de un clic, pausa automática.
 **Dependencias:** Phase 3 (puede hacerse en paralelo con 5/6 si conviene).
 
-**Tareas:** comando `avytra:listings:process-freshness` (3 pasadas idempotentes, `--dry-run`); scheduler hourly; notificaciones `ListingFreshnessReminder` (dos etapas) y `ListingExpired` con plantillas de marca; ruta firmada de confirmación sin login; botón "Sigue disponible" en panel; acción admin "confirmar en nombre de"; badges "Necesita confirmación"; texto público de frescura; listado admin de caducadas y de avisos fallidos.
+**Tareas:** comando `avytra:listings:process-freshness` (3 pasadas idempotentes, `--dry-run`); scheduler hourly; notificaciones `ListingFreshnessReminder` (dos etapas) y `ListingExpired` con plantillas de marca; página autenticada de confirmación enlazada desde el email (firma temporal + `auth` + Policy, botón único "Sí, sigue disponible"); botón "Sigue disponible" en panel; acción admin "confirmar en nombre de"; badges "Necesita confirmación"; texto público de frescura; listado admin de caducadas y de avisos fallidos.
 **Criterios de aceptación:** con `travel`, la secuencia 45/55/60 ocurre exactamente una vez; confirmar reinicia; enlace caducado no funciona; nada se borra; `composer test` pasa.
 **Tests esperados:** los de [13](13-freshness-and-notifications.md).
 **Terminado cuando:** DoD.

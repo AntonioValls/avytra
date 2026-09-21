@@ -12,6 +12,7 @@ Formato: una sección por fase cerrada, con fecha. Cambios de documentación rel
 
 ### Cambiado
 - `.gitignore`: se retira `/CLAUDE.md` para versionar las instrucciones del proyecto.
+- Tras la revisión del propietario: varios tipos de operación por publicación (`listing_operation_types`, `primary_operation_type`, `stake_percent`, `operation_notes`, nuevo valor `partial_sale`) — ADR-015; propiedad directa por usuario sin equipos — ADR-016; confirmación de vigencia con login en lugar de enlace sin sesión — ADR-007 revisado. Documentos 04, 05, 06, 07, 08, 09, 13, 16, 18, 19, 20 y 21 actualizados.
 
 ### Sin cambios de código
 - No hay migraciones, modelos, componentes ni dependencias nuevas.

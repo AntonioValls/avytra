@@ -49,7 +49,7 @@ Representa el acto de ofrecer el negocio en el mercado: qué operación, a qué 
 
 - Pertenece a un `Business`.
 - Tiene `ListingStatus` (ver [06-listing-lifecycle.md](06-listing-lifecycle.md)).
-- Tiene `OperationType`.
+- Tiene **uno o varios** `OperationType` (tabla pivote `listing_operation_types`) y un `primary_operation_type` que se usa en título sugerido, badge principal y ordenación. Ejemplo: una empresa puede ofrecer a la vez "venta completa" y "entrada de socio"; el comprador ve una única ficha con las opciones ofrecidas. Para operaciones parciales (`partial_sale`, `partner_entry`, `investor_search`) puede indicarse `stake_percent` (porcentaje ofrecido) y `operation_notes` (condiciones en texto corto).
 - Tiene título y slug público únicos (el slug es la URL de la ficha).
 - Contiene precio y su modo de divulgación, condiciones (qué se incluye), motivo de venta, puntos destacados.
 - Contiene la configuración de contacto (`contact_*`, `preferred_contact_method`).
@@ -129,7 +129,7 @@ Todos son `string` backed enums con métodos `label(): string` (traducible), y c
 | `LegalForm` | `sole_trader` (autónomo), `sl`, `sa`, `slu`, `cooperative`, `community_of_goods` (comunidad de bienes), `other` |
 | `EmployeeRange` | `none`, `one_to_two`, `three_to_five`, `six_to_ten`, `eleven_to_twenty_five`, `twenty_six_to_fifty`, `more_than_fifty` |
 | `ListingStatus` | `draft`, `published`, `paused`, `expired`, `sold`, `archived`, `suspended` |
-| `OperationType` | `full_sale`, `transfer` (traspaso), `share_sale` (venta de sociedad), `asset_sale`, `partner_entry`, `investor_search`, `other` |
+| `OperationType` | `full_sale`, `transfer` (traspaso), `share_sale` (venta de la sociedad completa), `partial_sale` (venta parcial de participaciones), `asset_sale`, `partner_entry`, `investor_search`, `other` |
 | `PriceDisclosure` | `exact`, `range`, `on_request` |
 | `Disclosure` | `exact`, `range`, `on_request`, `hidden` |
 | `FinancialMetric` | ver arriba |
@@ -144,7 +144,7 @@ Todos son `string` backed enums con métodos `label(): string` (traducible), y c
 | `ListingEventType` | ver arriba |
 | `ReminderStage` | `first`, `second` |
 
-Sobre la taxonomía de `OperationType`: se descarta `cession` (cesión) como valor propio porque en la práctica es un traspaso o una venta de activos; quien lo necesite usa `transfer` y lo matiza en la descripción. `share_sale` y `asset_sale` se mantienen separados porque el comprador los evalúa de forma muy distinta (asume la sociedad con su pasivo vs. compra solo activos).
+Sobre la taxonomía de `OperationType`: se descarta `cession` (cesión) como valor propio porque en la práctica es un traspaso o una venta de activos; quien lo necesite usa `transfer` y lo matiza en la descripción. `share_sale` y `asset_sale` se mantienen separados porque el comprador los evalúa de forma muy distinta (asume la sociedad con su pasivo vs. compra solo activos). `partial_sale` (vender un porcentaje) se distingue de `partner_entry` (incorporar un socio que aporta capital y trabajo) y de `investor_search` (capital sin implicación operativa). Una publicación puede combinar varios valores (ADR-015); la invariante "una publicación no terminada por empresa" se mantiene.
 
 ## Invariantes del dominio
 

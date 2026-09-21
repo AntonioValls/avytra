@@ -130,7 +130,9 @@ business_id            FK businesses, restrictOnDelete   index
 created_by_user_id     FK users nullable
 updated_by_user_id     FK users nullable
 status                 string(20) default 'draft'        index
-operation_type         string(30)                        index
+primary_operation_type string(30)                        index
+stake_percent          unsignedTinyInteger nullable      (1–100; solo operaciones parciales)
+operation_notes        string(500) nullable
 title                  string(120)
 slug                   string(140) unique
 reason_for_sale        string(500) nullable
@@ -172,6 +174,18 @@ index (status, next_confirmation_at)
 ```
 
 Nota: la restricción "una publicación no terminada por empresa" se aplica en el Action de creación (no con índice único, porque los estados terminales conviven).
+
+### listing_operation_types
+
+```text
+id
+listing_id             FK listings, cascadeOnDelete
+operation_type         string(30)
+unique (listing_id, operation_type)
+index (operation_type)
+```
+
+Una fila por tipo de operación ofrecido. `listings.primary_operation_type` debe ser uno de ellos (validado en el Form Object y en "listo para publicar"). El filtro público por operación consulta esta tabla (`whereHas('operationTypes', ...)`).
 
 ### listing_financial_metrics
 
@@ -259,6 +273,7 @@ Depende de la decisión de [17-media-strategy.md](17-media-strategy.md). Con Spa
 | Listado público (published, orden recientes) | `listings (status, published_at)` |
 | Filtro por precio | `listings.asking_price` |
 | Filtro por tipo/sector | `businesses.business_type`, `businesses.category_id` (join) |
+| Filtro por operación | `listing_operation_types.operation_type` (join) |
 | Filtro por provincia | `locations.province_id` (join) |
 | Scheduler: pendientes de aviso/pausa | `listings (status, next_confirmation_at)`, `last_confirmed_at` |
 | Ficha por slug | `listings.slug` unique, `listing_slug_redirects.old_slug` unique |

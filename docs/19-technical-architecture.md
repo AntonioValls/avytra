@@ -23,7 +23,7 @@ app/
 ├── Http/
 │   ├── Controllers/             Public: HomeController, ListingController (show), CategoryController,
 │   │                            ProvinceController, SitemapController, RobotsController,
-│   │                            ListingConfirmationController (enlace firmado), LegalPageController
+│   │                            LegalPageController (la confirmación de vigencia es una página Livewire autenticada)
 │   ├── Middleware/              EnsureUserIsSuperadmin
 │   └── Requests/                StoreListingReportRequest (si no va por Livewire)
 ├── Livewire/

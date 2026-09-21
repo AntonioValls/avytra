@@ -22,6 +22,7 @@ Ideas documentadas para no contaminar el MVP y para comprobar que el dominio act
 | Internacionalización | Rutas por locale, `lang/*.json`, `*_translations` para contenido de catálogo (patrón ParkingParaCamiones), `currency` | Ya preparado a nivel de datos |
 | Páginas SEO por municipio y subcategoría | Rutas + `noindex` si vacías | Cuando haya volumen |
 | Impersonación de usuarios | Middleware + banner + audit | Solo si la asistencia directa resulta insuficiente |
+| Enlaces de acceso sin contraseña (magic links) | Token de un solo uso + `Auth::login` | Solo si la confirmación con login (ADR-007) genera fricción real; mismo riesgo que un email de reset |
 | Moderación previa (`pending_review`, `rejected`) | Estados adicionales entre `draft` y `published` | Si aparece abuso |
 | Editor enriquecido (`flux:editor`) | Sanitizador HTML con lista blanca | ADR obligatorio |
 | Búsqueda con Scout/Meilisearch | `Searchable` en `Listing` | Cuando LIKE/FULLTEXT no baste |

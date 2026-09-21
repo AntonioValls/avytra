@@ -56,7 +56,7 @@ Leyenda: ✅ permitido · ❌ denegado · 🔒 solo si es propietario
 | Editar | ❌ | 🔒 salvo `archived`/`suspended` | ✅ |
 | Publicar | ❌ | 🔒 | ✅ |
 | Pausar / reactivar | ❌ | 🔒 | ✅ |
-| Confirmar disponibilidad | ❌ | 🔒 (o enlace firmado) | ✅ (en nombre del propietario) |
+| Confirmar disponibilidad | ❌ | 🔒 (con sesión, desde el panel o desde la página enlazada en el email) | ✅ (en nombre del propietario) |
 | Marcar como vendida | ❌ | 🔒 | ✅ |
 | Archivar | ❌ | 🔒 | ✅ |
 | Suspender / levantar suspensión | ❌ | ❌ | ✅ |

@@ -26,7 +26,9 @@
 
 ## Important decisions
 
-Ver `docs/DECISIONS.md`. Resumen: Business ≠ Listing (ADR-001); roles por enum sin paquete (002); IDs autoincrementales + slugs (003); coordenadas privadas/públicas derivadas con `location_visibility` (004); MapLibre + OpenFreeMap configurable (005); Media Library propuesta (006); vigencia 45/55/60 configurable con confirmación de un clic sin login (007); zona horaria Europe/Madrid (008); contacto en la publicación (009); métricas financieras por fila con divulgación (010); moderación posterior (011); auditoría propia (012); búsqueda SQL (013); claves de traducción en inglés (014).
+Ver `docs/DECISIONS.md`. Resumen: Business ≠ Listing (ADR-001); roles por enum sin paquete (002); IDs autoincrementales + slugs (003); coordenadas privadas/públicas derivadas con `location_visibility` (004); MapLibre + OpenFreeMap configurable (005); Media Library propuesta (006); vigencia 45/55/60 configurable con confirmación autenticada de un botón (007, revisado); zona horaria Europe/Madrid (008); contacto en la publicación (009); métricas financieras por fila con divulgación (010); moderación posterior (011); auditoría propia (012); búsqueda SQL (013); claves de traducción en inglés (014); varios tipos de operación por publicación con operación principal (015); propiedad directa por usuario, sin equipos (016).
+
+Dudas de Phase 0 resueltas por el propietario el 2026-09-21: (1) una publicación puede ofrecer varios tipos de operación; (2) asesores/brokers sin previsión clara → propiedad directa; (3) confirmación de vigencia con login.
 
 ## Last tests executed
 

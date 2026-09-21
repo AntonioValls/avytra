@@ -30,7 +30,7 @@
 | Registro | 5/hora por IP (se añade) |
 | Reportar publicación | 3/hora por IP + 1 abierto por listing e IP |
 | Revelar teléfono/email | 20/hora por IP |
-| Enlace de confirmación firmado | 30/hora por IP |
+| Página de confirmación desde email | 30/hora por usuario |
 | Búsqueda pública | 60/min por IP (evita scraping agresivo) |
 | Subida de imágenes | 30/hora por usuario |
 | Geocodificación | 1/s global + 20/hora por usuario |
@@ -54,7 +54,7 @@ Definidos en `AppServiceProvider` o un `RateLimitServiceProvider` con nombres, a
 
 ## CSRF
 
-Cubierto por Livewire y por `@csrf` en formularios clásicos. La ruta GET de confirmación por enlace firmado no muta de forma peligrosa (solo prolonga vigencia) y está firmada con expiración; se documenta como excepción consciente (ADR-007).
+Cubierto por Livewire y por `@csrf` en formularios clásicos. No existe ninguna ruta GET que mute estado: la confirmación de vigencia desde el email aterriza en una página autenticada y la acción se ejecuta por POST (ADR-007).
 
 ## Enumeración de recursos y URLs
 

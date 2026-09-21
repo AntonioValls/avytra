@@ -12,7 +12,7 @@ return [
         'confirmation_period_days' => env('AVYTRA_CONFIRMATION_PERIOD_DAYS', 60), // pausa automática
         'first_reminder_days'      => env('AVYTRA_FIRST_REMINDER_DAYS', 45),
         'second_reminder_days'     => env('AVYTRA_SECOND_REMINDER_DAYS', 55),
-        'confirmation_link_ttl_days' => 20,   // validez del enlace firmado del email
+        'confirmation_link_ttl_days' => 20,   // validez de la firma del enlace del email (evita enlaces eternos)
         'sold_visible_days'        => 30,     // días que una vendida sigue siendo pública
     ],
     'contact' => ['reveal_rate_limit_per_hour' => 20],
@@ -68,15 +68,16 @@ Idioma: español, plantillas Markdown de Laravel con marca (logo, Ink/Lime), sin
 
 El destinatario es siempre el **email de la cuenta del propietario**, no el email de contacto de la publicación (que puede ser de terceros). Si el superadmin creó la cuenta con un email provisional propio, recibe él los avisos y confirma en nombre de la persona.
 
-## Confirmación de un clic
+## Confirmación con sesión iniciada (ADR-007)
 
-Enlace firmado temporal (`URL::temporarySignedRoute('listings.confirm', now()->addDays(ttl), ['listing' => $id])`):
+El email enlaza a una página del panel: `/panel/publicaciones/{listing}/confirmar` (enlace firmado temporal con `confirmation_link_ttl_days` para que un email antiguo no siga llevando a una acción, y ruta bajo `auth`).
 
-- **No requiere login.** Una persona mayor que recibe el email hace clic y ve "Gracias, tu publicación sigue vigente hasta el {fecha}". Riesgo: reenvío del email a un tercero permitiría renovar; el impacto es mínimo (la acción solo prolonga la vigencia). Se acepta (ADR-007).
-- El enlace es válido `confirmation_link_ttl_days`; caducado → página que invita a iniciar sesión.
-- La ruta es GET (los clientes de correo no hacen POST); la página muestra confirmación y un botón adicional "Marcar como vendida" que sí requiere login.
-- Funciona tanto para `published` (confirm) como `expired` (resume). Para `paused` (pausa voluntaria) no reactiva: muestra "Está pausada por ti; entra al panel para reactivarla".
-- Cada confirmación registra `ListingEvent::Confirmed` con `payload.channel = signed_link|dashboard|admin`.
+- **Requiere login.** Si el propietario no tiene sesión, ve la pantalla de acceso (con "¿Has olvidado tu contraseña?" y passkeys visibles) y tras entrar aterriza en la página de confirmación (`intended`).
+- La página muestra la publicación y un único botón "Sí, sigue disponible" (POST vía Livewire, autorizado con `ListingPolicy::confirm`). Al pulsarlo: "Gracias, tu publicación sigue vigente hasta el {fecha}". Botones secundarios: "Marcar como vendida", "Pausar".
+- Funciona tanto para `published` (confirm) como para `expired` (resume). Para `paused` (pausa voluntaria) muestra "Está pausada por ti" con el botón "Reactivar".
+- Firma caducada → la misma página sin la acción automática, con explicación; el botón sigue disponible desde el panel.
+- Cada confirmación registra `ListingEvent::Confirmed` con `payload.channel = email_link|dashboard|admin` y el `actor_user_id` real.
+- Por qué login y no un enlace sin sesión: el actor queda identificado, no hay rutas GET que muten estado y un email reenviado no permite actuar sobre la cuenta. El coste en fricción se mitiga con passkeys, reset de contraseña en un clic y la confirmación en nombre del propietario por el superadmin para cuentas asistidas. Los enlaces de acceso sin contraseña quedan en roadmap si la fricción resulta real.
 
 Además: botón "Sigue disponible" en el panel (siempre visible en publicadas) y acción "Confirmar en nombre del propietario" en admin (con `on_behalf_of_user_id`).
 
@@ -101,7 +102,8 @@ En ficha y tarjeta: "Disponibilidad confirmada hace N días" (0 → "hoy", 1 →
 - Publicar fija `last_confirmed_at` y `next_confirmation_at` según config.
 - `process-freshness` envía primer aviso a día 45, no lo repite, envía segundo a día 55, expira a día 60 (con `travel()` y config alterada a valores pequeños para rapidez).
 - Confirmar resetea flags y fechas.
-- Enlace firmado válido confirma sin sesión; caducado o manipulado no.
-- Enlace sobre `paused` no reactiva.
+- Enlace del email sin sesión redirige a login y, tras entrar, muestra la página de confirmación; un usuario distinto del propietario recibe 403/404.
+- Confirmar desde la página registra el evento con el actor correcto; firma caducada no ejecuta nada automáticamente.
+- Página sobre `paused` ofrece "Reactivar", no confirma sola.
 - Publicación `expired` no aparece en público y sí reaparece tras resume.
 - Comando idempotente al ejecutarse dos veces seguidas.

@@ -54,7 +54,7 @@
 | `draft` | `delete` | — | Propietario, superadmin | Eliminación física permitida **solo** en borradores. |
 | `published` | `pause` | `paused` | Propietario, superadmin | `paused_at = now()`. Evento `paused`. |
 | `published` | `autoExpire` | `expired` | Sistema | `expired_at = now()`. Evento `expired`. Notificación. |
-| `published` | `confirm` | `published` | Propietario (panel o enlace firmado), superadmin en su nombre | Actualiza `last_confirmed_at`, `next_confirmation_at`, resetea `*_reminder_sent_at`. Evento `confirmed`. |
+| `published` | `confirm` | `published` | Propietario (con sesión iniciada, desde el panel o desde la página a la que enlaza el email), superadmin en su nombre | Actualiza `last_confirmed_at`, `next_confirmation_at`, resetea `*_reminder_sent_at`. Evento `confirmed`. |
 | `published` | `markSold` | `sold` | Propietario, superadmin | `sold_at = now()`. Evento `sold`. |
 | `published` | `archive` | `archived` | Propietario, superadmin | |
 | `published` | `suspend` | `suspended` | Superadmin | `suspended_at`, `suspension_reason`. Notificación al propietario. Audit log. |

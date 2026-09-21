@@ -102,19 +102,19 @@ Dependencia externa mantenida por Spatie; tabla `media` polimórfica. Requiere a
 
 ---
 
-## ADR-007 — Vigencia con confirmación de un clic sin login y pausa automática configurable
+## ADR-007 — Vigencia con confirmación autenticada de un botón y pausa automática configurable
 
-Status: Accepted
+Status: Accepted (revisado 2026-09-21: se descarta la confirmación sin login propuesta inicialmente, a petición del propietario)
 Date: 2026-09-21
 
 ### Context
-Evitar anuncios abandonados sin perder datos ni exigir habilidades técnicas al vendedor.
+Evitar anuncios abandonados sin perder datos ni exigir habilidades técnicas al vendedor. Se valoró un enlace firmado que confirmara sin sesión (máxima sencillez) frente a exigir login (actor identificado, sin GET mutante, sin riesgo por reenvío de email).
 
 ### Decision
-Umbrales en `config/avytra.php` (45/55/60 días por defecto). Comando horario idempotente con flags `first/second_reminder_sent_at`. Estado `expired` distinto de `paused`. Confirmación por enlace firmado temporal **sin login** (GET), además de panel y admin. Nunca se borra por inactividad.
+Umbrales en `config/avytra.php` (45/55/60 días por defecto). Comando horario idempotente con flags `first/second_reminder_sent_at`. Estado `expired` distinto de `paused`. El email enlaza (firma temporal) a una página del panel **bajo `auth` y Policy** con un único botón "Sí, sigue disponible" (POST). También desde el panel y, en nombre del propietario, desde admin. Nunca se borra por inactividad.
 
 ### Consequences
-Riesgo aceptado: un email reenviado permite a un tercero prolongar la vigencia (impacto mínimo). Las notificaciones van al email de la cuenta, no al contacto de la publicación.
+Cada confirmación tiene actor real y queda en `listing_events`. Más fricción para usuarios poco tecnológicos, mitigada con passkeys, reset de contraseña visible en esa pantalla y confirmación por el superadmin para cuentas asistidas. Magic links en roadmap si la fricción se confirma.
 
 ---
 
@@ -227,3 +227,35 @@ Cadenas fuente en inglés dentro de `__()`, traducción en `lang/es.json`, `APP_
 
 ### Consequences
 Añadir un idioma = añadir un JSON. Se evita el error de ParkingParaCamiones de usar texto español como clave.
+
+---
+
+## ADR-015 — Una publicación puede ofrecer varios tipos de operación
+
+Status: Accepted
+Date: 2026-09-21
+
+### Context
+El propietario debe poder ofrecer a la vez, por ejemplo, venta completa y entrada de socio, o solo una venta parcial. Se valoró permitir varias publicaciones activas por empresa (una por operación) frente a una publicación con varios tipos.
+
+### Decision
+Se mantiene la invariante de **una publicación no terminada por empresa**. Los tipos ofrecidos se guardan en la tabla pivote `listing_operation_types` (≥1), con `listings.primary_operation_type` para badge, título sugerido y orden, y campos opcionales `stake_percent` y `operation_notes` para operaciones parciales. Se añade `partial_sale` al enum `OperationType`.
+
+### Consequences
+Una sola ficha por empresa (sin contenido duplicado ni SEO fragmentado), una sola confirmación de vigencia y un solo contacto. El filtro público por operación consulta la pivote. El wizard usa selección múltiple con elección de principal.
+
+---
+
+## ADR-016 — Propiedad directa por usuario; sin equipos ni asesores en el MVP
+
+Status: Accepted
+Date: 2026-09-21
+
+### Context
+No está claro si asesores o brokers gestionarán carteras ajenas. Modelar equipos ahora (patrón ParkingParaCamiones) añadiría tablas, invitaciones y UI sin demanda confirmada.
+
+### Decision
+`businesses.owner_user_id` apunta directamente a un `User`. Un asesor que hoy quiera publicar en nombre de un cliente puede hacerlo desde su propia cuenta (varias empresas por usuario) y, si el cliente se registra después, el superadmin transfiere la propiedad (`TransferBusinessOwnership`, con audit).
+
+### Consequences
+Simplicidad máxima en Policies y panel. Ruta de migración documentada en el roadmap: si llegan equipos, se crea `teams` con un equipo personal por usuario y se migra `owner_user_id` → `owner_team_id` en una sola migración de datos; el resto del dominio (`listings`, `locations`, medios) no cambia porque cuelga de `businesses`.
