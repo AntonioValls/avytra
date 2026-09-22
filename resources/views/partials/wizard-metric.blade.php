@@ -23,7 +23,7 @@
             <flux:input wire:model="economics.metrics.{{ $key }}.amount" type="number" min="0" step="1" :placeholder="__('Amount in euros')" class="sm:col-span-2" />
         @endif
 
-        <flux:select wire:model.live="economics.metrics.{{ $key }}.disclosure" :aria-label="__('Disclosure')">
+        <flux:select variant="listbox" wire:model.live="economics.metrics.{{ $key }}.disclosure" :aria-label="__('Disclosure')">
             @foreach (\App\Enums\Disclosure::cases() as $option)
                 <flux:select.option :value="$option->value">{{ $option->label() }}</flux:select.option>
             @endforeach

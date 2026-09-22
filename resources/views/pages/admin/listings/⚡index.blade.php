@@ -97,14 +97,14 @@ new class extends Component {
     <div class="grid gap-3 sm:grid-cols-3">
         <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" :placeholder="__('Search by title, business, owner or email')" clearable />
 
-        <flux:select wire:model.live="status" :placeholder="__('Any status')">
+        <flux:select variant="listbox" wire:model.live="status" :placeholder="__('Any status')">
             <flux:select.option value="">{{ __('Any status') }}</flux:select.option>
             @foreach (ListingStatus::cases() as $option)
                 <flux:select.option :value="$option->value">{{ $option->label() }}</flux:select.option>
             @endforeach
         </flux:select>
 
-        <flux:select wire:model.live="condition" :placeholder="__('Any condition')">
+        <flux:select variant="listbox" wire:model.live="condition" :placeholder="__('Any condition')">
             <flux:select.option value="">{{ __('Any condition') }}</flux:select.option>
             <flux:select.option value="needs_confirmation">{{ __('Needs confirmation') }}</flux:select.option>
             <flux:select.option value="recent">{{ __('Published in the last 24 hours') }}</flux:select.option>

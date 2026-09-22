@@ -170,14 +170,14 @@ new class extends Component {
     <div class="grid gap-3 sm:grid-cols-3">
         <flux:input wire:model.live.debounce.300ms="search" icon="magnifying-glass" :placeholder="__('Search by name, owner or email')" clearable />
 
-        <flux:select wire:model.live="type" :placeholder="__('Any business type')">
+        <flux:select variant="listbox" wire:model.live="type" :placeholder="__('Any business type')">
             <flux:select.option value="">{{ __('Any business type') }}</flux:select.option>
             @foreach (BusinessType::cases() as $businessType)
                 <flux:select.option :value="$businessType->value">{{ $businessType->label() }}</flux:select.option>
             @endforeach
         </flux:select>
 
-        <flux:select wire:model.live="category" :placeholder="__('Any sector')">
+        <flux:select variant="listbox" wire:model.live="category" :placeholder="__('Any sector')">
             <flux:select.option value="">{{ __('Any sector') }}</flux:select.option>
             @foreach ($this->sectors as $sector)
                 <flux:select.option :value="$sector->id">{{ $sector->name }}</flux:select.option>

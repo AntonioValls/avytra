@@ -362,7 +362,7 @@ new class extends Component {
             <div class="grid gap-6 sm:grid-cols-2">
                 <flux:input wire:model="form.founded_year" type="number" :label="__('Founding year')" min="1800" :max="now()->year" />
 
-                <flux:select wire:model="form.employee_range" :label="__('Employees')" :placeholder="__('Choose a range')">
+                <flux:select variant="listbox" wire:model="form.employee_range" :label="__('Employees')" :placeholder="__('Choose a range')">
                     @foreach (EmployeeRange::cases() as $range)
                         <flux:select.option :value="$range->value">{{ $range->label() }}</flux:select.option>
                     @endforeach
@@ -379,7 +379,7 @@ new class extends Component {
             <div class="grid gap-6 sm:grid-cols-2">
                 <flux:input wire:model="form.legal_name" :label="__('Legal name')" :badge="__('Private')" maxlength="160" />
 
-                <flux:select wire:model="form.legal_form" :label="__('Legal form')" :placeholder="__('Choose a legal form')">
+                <flux:select variant="listbox" wire:model="form.legal_form" :label="__('Legal form')" :placeholder="__('Choose a legal form')">
                     @foreach (LegalForm::cases() as $legalForm)
                         <flux:select.option :value="$legalForm->value">{{ $legalForm->label() }}</flux:select.option>
                     @endforeach
@@ -391,7 +391,7 @@ new class extends Component {
             <div class="grid gap-6 sm:grid-cols-2">
                 <flux:input wire:model="form.website_url" type="url" :label="__('Website')" placeholder="https://" maxlength="255" />
 
-                <flux:select wire:model="form.website_visibility" :label="__('Website visibility')" :description="__('Private: the website is only given to interested buyers.')">
+                <flux:select variant="listbox" wire:model="form.website_visibility" :label="__('Website visibility')" :description="__('Private: the website is only given to interested buyers.')">
                     @foreach (WebsiteVisibility::cases() as $visibility)
                         <flux:select.option :value="$visibility->value">{{ $visibility->label() }}</flux:select.option>
                     @endforeach
@@ -458,7 +458,7 @@ new class extends Component {
                 </flux:radio.group>
 
                 <div class="grid gap-6 sm:grid-cols-2">
-                    <flux:select wire:model.live="online.technology_platform" :label="__('Technology platform')" :placeholder="__('Choose a platform')">
+                    <flux:select variant="listbox" wire:model.live="online.technology_platform" :label="__('Technology platform')" :placeholder="__('Choose a platform')">
                         @foreach (TechnologyPlatform::cases() as $platform)
                             <flux:select.option :value="$platform->value">{{ $platform->label() }}</flux:select.option>
                         @endforeach
@@ -472,7 +472,7 @@ new class extends Component {
                 <div class="grid gap-6 sm:grid-cols-2">
                     <flux:input wire:model="online.monthly_visits" type="number" min="0" :label="__('Monthly visits')" />
 
-                    <flux:select wire:model="online.monthly_visits_disclosure" :label="__('Visits disclosure')">
+                    <flux:select variant="listbox" wire:model="online.monthly_visits_disclosure" :label="__('Visits disclosure')">
                         @foreach (Disclosure::cases() as $disclosure)
                             <flux:select.option :value="$disclosure->value">{{ $disclosure->label() }}</flux:select.option>
                         @endforeach
@@ -488,7 +488,7 @@ new class extends Component {
                                 <flux:input wire:model="online.registered_users" type="number" min="0" :label="__('Registered users')" />
                                 <flux:input wire:model="online.active_customers" type="number" min="0" :label="__('Active customers')" />
                                 <flux:input wire:model="online.monthly_orders" type="number" min="0" :label="__('Monthly orders')" />
-                                <flux:select wire:model="online.logistics_type" :label="__('Logistics')" :placeholder="__('Choose an option')">
+                                <flux:select variant="listbox" wire:model="online.logistics_type" :label="__('Logistics')" :placeholder="__('Choose an option')">
                                     @foreach (LogisticsType::cases() as $logistics)
                                         <flux:select.option :value="$logistics->value">{{ $logistics->label() }}</flux:select.option>
                                     @endforeach
