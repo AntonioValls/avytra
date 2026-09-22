@@ -19,6 +19,7 @@ Formato: una sección por fase cerrada, con fecha. Cambios de documentación rel
 - Config `avytra.limits.{description_min_length_to_publish, title_max_length, highlights_max, highlight_max_length}`.
 - Tests: `ListingStatusTest` (unit, dataset completo de transiciones), `ListingPolicyTest`, `ListingTransitionsTest`, `CreateListingDraftTest`, `ChangeListingSlugTest`, `ListingPublishabilityValidatorTest`, `ListingWizardTest`, `ListingIndexTest`, `AdminListingsTest`.
 - 303 cadenas nuevas en `lang/es.json`.
+- `DemoBusinessSeeder` (llamado desde `DatabaseSeeder`): empresa híbrida de prueba "Tienda online de consumibles de impresoras" en Borriana, con ubicación, perfil online y publicación publicada, propiedad de `test@example.com`. Idempotente; pasa por los mismos Actions que el wizard. Test `Seeders/DemoBusinessSeederTest`.
 
 ### Cambiado
 - `DeleteUserAccount` archiva (evento `archived`) y borra las publicaciones antes de borrar cada empresa.

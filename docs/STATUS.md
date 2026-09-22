@@ -39,7 +39,7 @@ Phase 2 se dio por aprobada el 2026-09-22 al pedir el propietario el inicio de P
 
 ## Next
 
-- Revisión visual del propietario: wizard completo en los tres tipos de negocio (móvil y escritorio), `/panel/publicaciones` con cada estado, avisos del panel de inicio, `/admin/publicaciones` y su detalle (suspender, timeline, cambiar URL). Requiere `npm run build` (o `composer run dev`). Usuario local: `test@example.com`.
+- Revisión visual del propietario: wizard completo en los tres tipos de negocio (móvil y escritorio), `/panel/publicaciones` con cada estado, avisos del panel de inicio, `/admin/publicaciones` y su detalle (suspender, timeline, cambiar URL). Requiere `npm run build` (o `composer run dev`). Usuario local: `test@example.com`. Datos de prueba: `php artisan db:seed --class=DemoBusinessSeeder` (o `migrate:fresh --seed`, que ya lo incluye) crea la empresa "Tienda online de consumibles de impresoras" con su publicación publicada.
 - Phase 4 — Marketplace público: `PublicListingPresenter`, home real, explorar con filtros, `x-listing-card`, `x-freshness-badge`, ficha pública con revelación de contacto, páginas de categoría/provincia, reportes, páginas estáticas. La vista previa del paso 8 del wizard debe sustituirse entonces por el parcial público real.
 
 ## Blockers
@@ -59,7 +59,7 @@ Ver `docs/DECISIONS.md` (ADR-001…017). Decisiones menores de Phase 3: el wizar
 
 ## Last tests executed
 
-- 2026-09-22 — `composer test` (Pint + Larastan nivel 7 + Pest): **330 tests, 1.197 aserciones, todo en verde.** Nuevos: `Unit/Enums/ListingStatusTest` (dataset de 49 transiciones), `Policies/ListingPolicyTest`, `Actions/Listings/{ListingTransitions,CreateListingDraft,ChangeListingSlug}Test`, `Support/ListingPublishabilityValidatorTest`, `Listings/{ListingWizard,ListingIndex}Test`, `Admin/AdminListingsTest`; ampliados `Policies/BusinessPolicyTest` y `Actions/Users/DeleteUserAccountTest`.
+- 2026-09-22 — `composer test` (Pint + Larastan nivel 7 + Pest): **332 tests, todo en verde** (330 de Phase 3 más `Seeders/DemoBusinessSeederTest`). Nuevos: `Unit/Enums/ListingStatusTest` (dataset de 49 transiciones), `Policies/ListingPolicyTest`, `Actions/Listings/{ListingTransitions,CreateListingDraft,ChangeListingSlug}Test`, `Support/ListingPublishabilityValidatorTest`, `Listings/{ListingWizard,ListingIndex}Test`, `Admin/AdminListingsTest`; ampliados `Policies/BusinessPolicyTest` y `Actions/Users/DeleteUserAccountTest`.
 
 ## Last updated
 
