@@ -12,7 +12,7 @@ test('the list shows only the listings of the businesses the user owns', functio
     $foreign = Listing::factory()->published()->create(['title' => 'Traspaso ajeno']);
 
     $this->actingAs($user)
-        ->get(route('listings.index'))
+        ->get(route('panel.listings.index'))
         ->assertOk()
         ->assertSee('Mi traspaso')
         ->assertDontSee('Traspaso ajeno')
@@ -21,10 +21,10 @@ test('the list shows only the listings of the businesses the user owns', functio
 
 test('a user without listings sees an empty state that leads to the wizard', function () {
     $this->actingAs(User::factory()->create())
-        ->get(route('listings.index'))
+        ->get(route('panel.listings.index'))
         ->assertOk()
         ->assertSee(__('You do not have any listings yet.'))
-        ->assertSee(route('listings.create'));
+        ->assertSee(route('panel.listings.create'));
 });
 
 test('the owner confirms availability, pauses and resumes from the list', function () {
@@ -93,7 +93,7 @@ test('publishing again a sold listing creates a new draft and opens the wizard',
 
     $draft = Listing::where('status', ListingStatus::Draft)->sole();
 
-    $component->assertRedirect(route('listings.edit', $draft));
+    $component->assertRedirect(route('panel.listings.edit', $draft));
 
     expect($draft->business_id)->toBe($sold->business_id);
 });
@@ -121,7 +121,7 @@ test('the panel home shows actionable notices and lets the owner act on them', f
         ->assertSee(__('“:title” needs confirmation.', ['title' => 'Necesita confirmar']))
         ->assertSee(__('“:title” was paused for lack of confirmation.', ['title' => 'Caducada']))
         ->assertSee(__('You have an unfinished draft for “:business”.', ['business' => 'Empresa borrador']))
-        ->assertSee(route('listings.edit', $draft));
+        ->assertSee(route('panel.listings.edit', $draft));
 
     Livewire::test('pages::dashboard')
         ->call('confirmAvailability', $needing->id)

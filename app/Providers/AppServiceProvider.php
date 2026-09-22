@@ -82,5 +82,14 @@ class AppServiceProvider extends ServiceProvider
         RateLimiter::for('public', function (Request $request) {
             return Limit::perMinute(config('avytra.rate_limits.public_per_minute'))->by($request->ip());
         });
+
+        // Livewire actions consult these two through RateLimiter::attempt() with the same names.
+        RateLimiter::for('contact-reveal', function (Request $request) {
+            return Limit::perHour(config('avytra.contact.reveal_rate_limit_per_hour'))->by($request->ip());
+        });
+
+        RateLimiter::for('report', function (Request $request) {
+            return Limit::perHour(config('avytra.reports.rate_limit_per_hour'))->by($request->ip());
+        });
     }
 }

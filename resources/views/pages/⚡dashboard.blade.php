@@ -133,7 +133,7 @@ new class extends Component {
             :heading="__('You do not have any businesses yet.')"
             :text="__('Publishing takes three steps: create the business with its basic data, complete the listing in a short guided process and confirm from time to time that it is still available.')"
         >
-            <flux:button variant="primary" icon="plus" :href="route('listings.create')" wire:navigate>
+            <flux:button variant="primary" icon="plus" :href="route('panel.listings.create')" wire:navigate>
                 {{ __('Publish my first business') }}
             </flux:button>
             <flux:button :href="route('businesses.create')" wire:navigate>
@@ -168,7 +168,7 @@ new class extends Component {
                     <flux:callout icon="document-text" variant="secondary" wire:key="notice-draft-{{ $listing->id }}">
                         <flux:callout.heading>{{ __('You have an unfinished draft for “:business”.', ['business' => $listing->business->name]) }}</flux:callout.heading>
                         <x-slot name="actions">
-                            <flux:button size="sm" icon="arrow-right" :href="route('listings.edit', $listing)" wire:navigate>{{ __('Continue') }}</flux:button>
+                            <flux:button size="sm" icon="arrow-right" :href="route('panel.listings.edit', $listing)" wire:navigate>{{ __('Continue') }}</flux:button>
                         </x-slot>
                     </flux:callout>
                 @endforeach
@@ -179,7 +179,7 @@ new class extends Component {
         <section class="flex flex-col gap-4">
             <div class="flex items-center justify-between gap-4">
                 <flux:heading size="lg" level="2">{{ __('My listings') }}</flux:heading>
-                <flux:link :href="route('listings.index')" wire:navigate class="text-sm">{{ __('See all') }}</flux:link>
+                <flux:link :href="route('panel.listings.index')" wire:navigate class="text-sm">{{ __('See all') }}</flux:link>
             </div>
 
             @if ($this->listings->isEmpty())
@@ -188,7 +188,7 @@ new class extends Component {
                     :heading="__('You do not have any listings yet.')"
                     :text="__('Publish one of your businesses in eight short steps.')"
                 >
-                    <flux:button variant="primary" icon="plus" :href="route('listings.create')" wire:navigate>{{ __('New listing') }}</flux:button>
+                    <flux:button variant="primary" icon="plus" :href="route('panel.listings.create')" wire:navigate>{{ __('New listing') }}</flux:button>
                 </x-empty-state>
             @else
                 <div class="flex flex-col divide-y divide-zinc-100 rounded-lg border border-zinc-200 dark:divide-zinc-800 dark:border-zinc-700">
@@ -201,9 +201,9 @@ new class extends Component {
                             <div class="flex shrink-0 items-center gap-2">
                                 <x-listing-status-badge :listing="$listing" />
                                 @if ($listing->status === ListingStatus::Draft)
-                                    <flux:button size="sm" :href="route('listings.edit', $listing)" wire:navigate>{{ __('Continue') }}</flux:button>
+                                    <flux:button size="sm" :href="route('panel.listings.edit', $listing)" wire:navigate>{{ __('Continue') }}</flux:button>
                                 @elseif ($listing->status->isEditableByOwner())
-                                    <flux:button size="sm" variant="ghost" icon="pencil-square" :href="route('listings.edit', $listing)" wire:navigate :aria-label="__('Edit')" />
+                                    <flux:button size="sm" variant="ghost" icon="pencil-square" :href="route('panel.listings.edit', $listing)" wire:navigate :aria-label="__('Edit')" />
                                 @endif
                             </div>
                         </div>
@@ -233,7 +233,7 @@ new class extends Component {
                         <div class="flex flex-wrap gap-2">
                             <flux:button size="sm" icon="pencil-square" :href="route('businesses.edit', $business)" wire:navigate>{{ __('Edit') }}</flux:button>
                             @if ($business->openListing === null)
-                                <flux:button size="sm" variant="primary" icon="plus" :href="route('listings.create', ['empresa' => $business->id])" wire:navigate>{{ __('New listing') }}</flux:button>
+                                <flux:button size="sm" variant="primary" icon="plus" :href="route('panel.listings.create', ['empresa' => $business->id])" wire:navigate>{{ __('New listing') }}</flux:button>
                             @endif
                         </div>
                     </flux:card>

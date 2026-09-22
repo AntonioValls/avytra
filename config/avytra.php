@@ -26,11 +26,15 @@ return [
     ],
 
     'contact' => [
+        // "Show phone / email" clicks allowed per IP and hour on public listing pages.
         'reveal_rate_limit_per_hour' => 20,
     ],
 
     'reports' => [
         'rate_limit_per_hour' => 3,
+        // A form submitted faster than this is treated as a bot (honeypot companion).
+        'min_seconds_to_submit' => 3,
+        'message_max_length' => 1000,
     ],
 
     'location' => [
@@ -77,6 +81,17 @@ return [
     'pagination' => [
         'panel_cards' => 12,
         'admin_rows' => 25,
+        'public_cards' => 24,
+    ],
+
+    'public' => [
+        // Listings shown on the home page and as related listings on a listing page.
+        'home_latest_listings' => 8,
+        'related_listings' => 4,
+        // Cached aggregates (counts per category/province) in minutes.
+        'aggregates_cache_minutes' => 15,
+        // Explore price filter bounds (EUR).
+        'price_filter_max' => 50000000,
     ],
 
     'limits' => [

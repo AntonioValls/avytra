@@ -28,4 +28,6 @@ Route::middleware(['auth', 'verified', 'superadmin'])
         Route::livewire('publicaciones/nueva', 'pages::listings.wizard')->defaults('admin', true)->name('listings.create');
         Route::livewire('publicaciones/{listing}', 'pages::admin.listings.show')->name('listings.show');
         Route::livewire('publicaciones/{listing}/editar', 'pages::listings.wizard')->defaults('admin', true)->name('listings.edit');
+
+        Route::livewire('reportes', 'pages::admin.reports.index')->name('reports.index');
     });

@@ -2,6 +2,26 @@
 
 Formato: una sección por fase cerrada, con fecha. Cambios de documentación relevantes también se anotan.
 
+## [Phase 4] — 2026-09-22 — Marketplace público
+
+### Añadido
+- `App\Support\Listings\PublicListingPresenter` (proyección pública única: ubicación según `location_visibility` efectiva, precio y métricas según divulgación, web y redes según `website_visibility`, forma jurídica según `show_legal_form`, canales de contacto públicos/sensibles, texto de vigencia, `pageMeta()` con JSON-LD `Offer` y `BreadcrumbList`, `withTitle()` para la vista previa), `PriceFormatter`, `MarketplaceAggregates` (recuentos por sector/provincia y provincias cacheados como arrays).
+- Rutas públicas: `/` (`HomeController`), `/empresas`, `/empresas/categoria/{slug}`, `/empresas/provincia/{slug}`, `/negocios-online` (`pages::public.listings.index`, filtros `#[Url]`), `/empresas/{slug}` (`ListingController@show`), `/publicar`, `/como-funciona`, `/aviso-legal`, `/privacidad`, `/cookies`; todas bajo `throttle:public`.
+- Componentes Livewire `public.contact-box` (revelación de teléfono/WhatsApp/email con limitador `contact-reveal`) y `public.report-listing` (modal con honeypot, tiempo mínimo, limitador `report` y un reporte abierto por visitante).
+- Reportes: migración `listing_reports`, modelo `ListingReport` (+factory), enums `ListingReportReason` y `ListingReportStatus`, `ListingReportPolicy`, Actions `Reports\SubmitListingReport` y `Reports\ResolveListingReport` (audit `listing_report.resolved|dismissed`), notificación `ListingReportReceived` a superadmins, bandeja `pages::admin.reports.index` (`/admin/reportes`) con acción rápida pausar/suspender/archivar; entrada "Reportes" en el sidebar admin.
+- Componentes Blade `x-listing-card`, `x-freshness-badge`, `x-public.legal-page`; vistas `public/home` (real), `public/listings/show` + `partials/content` + `partials/filters`, `public/publish`, `public/how-it-works`, `public/legal/*`, `errors/404` y `errors/410` con layout público.
+- Relaciones `Listing::reports()`, `Category::businesses()`, `Province::locations()`.
+- Config `avytra.pagination.public_cards` (24), `avytra.public.{home_latest_listings, related_listings, aggregates_cache_minutes, price_filter_max}`, `avytra.reports.{min_seconds_to_submit, message_max_length}`; limitadores `contact-reveal` y `report` en `AppServiceProvider`.
+- Tests: `Support/PublicListingPresenterTest` (visibilidad por dataset, divulgación, JSON-LD sin coordenadas privadas), `Public/ListingShowTest` (never leaks, revelación y rate limit, 404/410/301, propietario con banner, vendida), `Public/ListingExploreTest` (cada filtro, orden, paginación, vacío, categoría/provincia/online, canonical), `Public/StaticPagesTest`, `Reports/ListingReportTest`, `Policies/ListingReportPolicyTest`.
+- 201 cadenas nuevas en `lang/es.json`.
+
+### Cambiado
+- Rutas del panel de publicaciones renombradas a `panel.listings.index|create|edit` (el nombre `listings.index` pasa a explorar, docs/08).
+- `x-price` es presentacional (`text`, `negotiable`); el admin y el wizard formatean con `PriceFormatter`.
+- La vista previa del paso 8 del wizard renderiza el parcial público real mediante el presentador.
+- Header público con navegación (Explorar, Negocios online, Vende tu empresa) y footer con sectores, provincias con publicaciones, legales y soporte.
+- Documentación: docs 08, 09, 12, 15 y 16 con notas de implementación; STATUS.
+
 ## [Phase 3] — 2026-09-22 — Publicaciones
 
 ### Añadido

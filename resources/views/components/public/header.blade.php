@@ -4,6 +4,12 @@
 
         <x-app-logo wire:navigate />
 
+        <flux:navbar class="ms-8 max-lg:hidden">
+            <flux:navbar.item :href="route('listings.index')" :current="request()->routeIs('listings.index', 'categories.show', 'provinces.show', 'listings.online', 'listings.show')" wire:navigate>{{ __('Explore') }}</flux:navbar.item>
+            <flux:navbar.item :href="route('listings.online')" :current="request()->routeIs('listings.online')" wire:navigate>{{ __('Online businesses') }}</flux:navbar.item>
+            <flux:navbar.item :href="route('publish.landing')" :current="request()->routeIs('publish.landing')" wire:navigate>{{ __('Sell your business') }}</flux:navbar.item>
+        </flux:navbar>
+
         <flux:spacer />
 
         <flux:navbar class="max-lg:hidden">
@@ -21,6 +27,15 @@
             <x-app-logo :sidebar="true" wire:navigate />
             <flux:sidebar.collapse />
         </flux:sidebar.header>
+
+        <flux:sidebar.nav>
+            <flux:sidebar.item icon="magnifying-glass" :href="route('listings.index')" wire:navigate>{{ __('Explore') }}</flux:sidebar.item>
+            <flux:sidebar.item icon="globe-alt" :href="route('listings.online')" wire:navigate>{{ __('Online businesses') }}</flux:sidebar.item>
+            <flux:sidebar.item icon="megaphone" :href="route('publish.landing')" wire:navigate>{{ __('Sell your business') }}</flux:sidebar.item>
+            <flux:sidebar.item icon="question-mark-circle" :href="route('how-it-works')" wire:navigate>{{ __('How it works') }}</flux:sidebar.item>
+        </flux:sidebar.nav>
+
+        <flux:sidebar.spacer />
 
         <flux:sidebar.nav>
             @auth

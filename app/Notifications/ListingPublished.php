@@ -44,7 +44,7 @@ class ListingPublished extends Notification implements ShouldQueue
             ->greeting(__('Hello :name,', ['name' => $notifiable->name]))
             ->line(__('“:title” is now visible to buyers on AVYTRA.', ['title' => $this->listing->title]))
             ->line(__('To keep the marketplace reliable we ask every seller to confirm, every :days days, that the business is still available. We will remind you by email :reminder days after your last confirmation, and if we hear nothing the listing is paused (never deleted). One click brings it back.', ['days' => $days, 'reminder' => $firstReminder]))
-            ->action(__('Go to my listings'), route('listings.index'))
+            ->action(__('Go to my listings'), route('panel.listings.index'))
             ->line(__('Thank you for publishing with AVYTRA.'))
             ->salutation(__('The AVYTRA team'));
     }

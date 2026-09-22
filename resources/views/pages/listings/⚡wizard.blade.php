@@ -38,6 +38,7 @@ use App\Models\Province;
 use App\Models\User;
 use App\Support\Listings\ListingPublishabilityValidator;
 use App\Support\Listings\ListingTitleSuggester;
+use App\Support\Listings\PublicListingPresenter;
 use App\Support\Listings\PublishabilityReport;
 use Flux\Flux;
 use Illuminate\Database\Eloquent\Builder;
@@ -202,7 +203,7 @@ new class extends Component {
 
         Flux::toast(variant: 'success', text: __('Draft saved. You can continue whenever you want.'));
 
-        $this->redirectRoute($this->adminContext ? 'admin.listings.index' : 'listings.index', navigate: true);
+        $this->redirectRoute($this->adminContext ? 'admin.listings.index' : 'panel.listings.index', navigate: true);
     }
 
     public function canJumpTo(int $target): bool
@@ -429,7 +430,7 @@ new class extends Component {
 
         Flux::toast(variant: 'success', text: __('Your listing is now published.'));
 
-        $this->redirectRoute($this->adminContext ? 'admin.listings.index' : 'listings.index', navigate: true);
+        $this->redirectRoute($this->adminContext ? 'admin.listings.index' : 'panel.listings.index', navigate: true);
     }
 
     public function useSuggestedTitle(): void
@@ -1304,105 +1305,32 @@ new class extends Component {
                     </flux:callout>
                 @endif
 
-                {{-- Preview: how the main data will read on the public page. Images and map arrive in later phases. --}}
-                <flux:card class="flex flex-col gap-6">
+                {{-- Preview: the real public partial, fed by the same presenter as the listing page. Images and map arrive in later phases. --}}
+                @php
+                    $preview = PublicListingPresenter::for($listing)->withTitle($publishing->title !== '' ? $publishing->title : $this->suggestedTitle);
+                @endphp
+                <flux:card class="flex flex-col gap-8">
                     <div class="flex flex-col gap-3">
                         <div class="flex flex-wrap gap-2">
-                            @foreach ($listing->offeredOperationTypes() as $offered)
+                            @foreach ($preview->operationTypes() as $offered)
                                 <flux:badge size="sm" :color="$offered->badgeColor()" wire:key="preview-op-{{ $offered->value }}">{{ $offered->label() }}</flux:badge>
                             @endforeach
-                            @if ($listing->business->business_type !== BusinessType::Physical)
-                                <flux:badge size="sm" :color="$listing->business->business_type->badgeColor()">{{ $listing->business->business_type->label() }}</flux:badge>
+                            @if ($preview->businessType() !== BusinessType::Physical)
+                                <flux:badge size="sm" :color="$preview->businessType()->badgeColor()">{{ $preview->businessType()->label() }}</flux:badge>
                             @endif
                         </div>
-                        <flux:heading size="xl" level="2">{{ $publishing->title !== '' ? $publishing->title : ($this->suggestedTitle ?? __('Untitled listing')) }}</flux:heading>
-                        <flux:text>
-                            {{ $listing->business->category?->name }}
-                            @if ($listing->business->location)
-                                · {{ $listing->business->location->municipality?->name ?? $listing->business->location->province->name }}
-                            @else
-                                · {{ __('Online') }}
-                            @endif
-                        </flux:text>
+                        <flux:heading size="xl" level="2">{{ $preview->title() }}</flux:heading>
+                        <flux:text>{{ $preview->categoryName() }} · {{ $preview->locationText() }}</flux:text>
                     </div>
 
-                    <div class="grid gap-4 sm:grid-cols-3">
-                        <div class="flex flex-col gap-1 rounded-md bg-mist p-4 dark:bg-zinc-900">
-                            <span class="text-xs font-semibold uppercase tracking-wider text-slate">{{ __('Price') }}</span>
-                            <x-price :listing="$listing" />
-                        </div>
-                        @if ($listing->business->employee_range)
-                            <div class="flex flex-col gap-1 rounded-md bg-mist p-4 dark:bg-zinc-900">
-                                <span class="text-xs font-semibold uppercase tracking-wider text-slate">{{ __('Employees') }}</span>
-                                <span class="font-semibold text-ink dark:text-white">{{ $listing->business->employee_range->label() }}</span>
-                            </div>
-                        @endif
-                        @if ($listing->business->founded_year)
-                            <div class="flex flex-col gap-1 rounded-md bg-mist p-4 dark:bg-zinc-900">
-                                <span class="text-xs font-semibold uppercase tracking-wider text-slate">{{ __('Founded') }}</span>
-                                <span class="font-semibold text-ink dark:text-white">{{ $listing->business->founded_year }}</span>
-                            </div>
-                        @endif
-                    </div>
-
-                    @if ($listing->business->description)
-                        <div class="flex flex-col gap-2">
-                            <flux:heading size="sm">{{ __('Description') }}</flux:heading>
-                            <div class="whitespace-pre-line text-sm text-ink dark:text-zinc-200">{{ $listing->business->description }}</div>
-                        </div>
-                    @endif
-
-                    @if ($listing->highlights)
-                        <div class="flex flex-col gap-2">
-                            <flux:heading size="sm">{{ __('Highlights') }}</flux:heading>
-                            <ul class="flex flex-col gap-1 text-sm">
-                                @foreach ($listing->highlights as $highlight)
-                                    <li class="flex items-start gap-2"><flux:icon.check variant="micro" class="mt-0.5 shrink-0 text-ink dark:text-lime" /> {{ $highlight }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
-
-                    @if ($listing->reason_for_sale)
-                        <div class="flex flex-col gap-2">
-                            <flux:heading size="sm">{{ __('Reason for sale') }}</flux:heading>
-                            <flux:text>{{ $listing->reason_for_sale }}</flux:text>
-                        </div>
-                    @endif
-
-                    @if ($listing->financialMetrics->isNotEmpty())
-                        <div class="flex flex-col gap-2">
-                            <flux:heading size="sm">{{ __('Financial figures') }}</flux:heading>
-                            <dl class="grid gap-2 text-sm sm:grid-cols-2">
-                                @foreach ($listing->financialMetrics as $metric)
-                                    @if ($metric->disclosure !== Disclosure::Hidden)
-                                        <div class="flex justify-between gap-4 border-b border-zinc-100 py-1 dark:border-zinc-800" wire:key="preview-metric-{{ $metric->id }}">
-                                            <dt class="text-slate">{{ $metric->metric->label() }}</dt>
-                                            <dd class="font-semibold text-ink dark:text-white">
-                                                @switch($metric->disclosure)
-                                                    @case(Disclosure::Exact)
-                                                        {{ \Illuminate\Support\Number::currency((int) $metric->amount, $metric->currency, locale: 'es', precision: 0) }}
-                                                        @break
-                                                    @case(Disclosure::Range)
-                                                        {{ \Illuminate\Support\Number::currency((int) $metric->amount_min, $metric->currency, locale: 'es', precision: 0) }} – {{ \Illuminate\Support\Number::currency((int) $metric->amount_max, $metric->currency, locale: 'es', precision: 0) }}
-                                                        @break
-                                                    @default
-                                                        {{ __('On request') }}
-                                                @endswitch
-                                            </dd>
-                                        </div>
-                                    @endif
-                                @endforeach
-                            </dl>
-                        </div>
-                    @endif
+                    @include('public.listings.partials.content', ['listing' => $preview])
 
                     <div class="flex flex-col gap-2 rounded-md border border-zinc-200 p-4 dark:border-zinc-700">
                         <flux:heading size="sm">{{ __('Contact the owner') }}</flux:heading>
-                        <span class="text-sm font-semibold text-ink dark:text-white">{{ $listing->contact_name ?? '—' }}</span>
-                        @if ($listing->preferred_contact_method)
+                        <span class="text-sm font-semibold text-ink dark:text-white">{{ $preview->contactName() ?? '—' }}</span>
+                        @if ($preview->preferredContactMethod())
                             <div>
-                                <flux:button variant="primary" size="sm" type="button" :icon="$listing->preferred_contact_method->icon()">{{ $listing->preferred_contact_method->actionLabel() }}</flux:button>
+                                <flux:button variant="primary" size="sm" type="button" :icon="$preview->preferredContactMethod()->icon()">{{ $preview->preferredContactMethod()->actionLabel() }}</flux:button>
                             </div>
                         @endif
                     </div>
@@ -1419,7 +1347,7 @@ new class extends Component {
                 @if ($listingId !== null || $step > $firstStep)
                     <flux:button type="button" variant="ghost" wire:click="saveAndExit">{{ __('Save and exit') }}</flux:button>
                 @else
-                    <flux:button type="button" variant="ghost" :href="route($adminContext ? 'admin.listings.index' : 'listings.index')" wire:navigate>{{ __('Cancel') }}</flux:button>
+                    <flux:button type="button" variant="ghost" :href="route($adminContext ? 'admin.listings.index' : 'panel.listings.index')" wire:navigate>{{ __('Cancel') }}</flux:button>
                 @endif
             </div>
 

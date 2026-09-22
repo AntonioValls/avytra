@@ -19,10 +19,10 @@ use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
 
 test('the wizard page renders for a registered user and redirects guests', function () {
-    $this->get(route('listings.create'))->assertRedirect(route('login'));
+    $this->get(route('panel.listings.create'))->assertRedirect(route('login'));
 
     $this->actingAs(User::factory()->create())
-        ->get(route('listings.create'))
+        ->get(route('panel.listings.create'))
         ->assertOk()
         ->assertSee(__('New listing'))
         ->assertSee(__('A new business'));
@@ -162,7 +162,7 @@ test('each step persists its data so the owner can leave and continue later', fu
         ->call('next')
         ->assertSet('step', 7)
         ->call('saveAndExit')
-        ->assertRedirect(route('listings.index'));
+        ->assertRedirect(route('panel.listings.index'));
 
     $listing = Listing::sole()->load('financialMetrics');
 
@@ -255,7 +255,7 @@ test('a complete draft is published from the last step with the suggested title'
         ->call('useSuggestedTitle')
         ->call('publish')
         ->assertHasNoErrors()
-        ->assertRedirect(route('listings.index'));
+        ->assertRedirect(route('panel.listings.index'));
 
     $listing->refresh();
 
@@ -323,7 +323,7 @@ test('the business card links to the wizard with the business preselected', func
 
     $this->get(route('businesses.index'))
         ->assertOk()
-        ->assertSee(route('listings.create', ['empresa' => $business->id]));
+        ->assertSee(route('panel.listings.create', ['empresa' => $business->id]));
 
     Livewire::withQueryParams(['empresa' => $business->id])
         ->test('pages::listings.wizard')

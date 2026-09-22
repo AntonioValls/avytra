@@ -59,6 +59,16 @@ class Category extends Model
     }
 
     /**
+     * Businesses whose sector (root category) is this one.
+     *
+     * @return HasMany<Business, $this>
+     */
+    public function businesses(): HasMany
+    {
+        return $this->hasMany(Business::class, 'category_id');
+    }
+
+    /**
      * @param  Builder<Category>  $query
      * @return Builder<Category>
      */

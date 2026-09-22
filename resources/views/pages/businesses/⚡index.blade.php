@@ -105,15 +105,15 @@ new class extends Component {
                                 {{ __('Edit') }}
                             </flux:button>
                             @if ($business->openListing === null)
-                                <flux:button size="sm" variant="primary" icon="plus" :href="route('listings.create', ['empresa' => $business->id])" wire:navigate>
+                                <flux:button size="sm" variant="primary" icon="plus" :href="route('panel.listings.create', ['empresa' => $business->id])" wire:navigate>
                                     {{ __('New listing') }}
                                 </flux:button>
                             @elseif ($business->openListing->status === \App\Enums\ListingStatus::Draft)
-                                <flux:button size="sm" variant="primary" icon="arrow-right" :href="route('listings.edit', $business->openListing)" wire:navigate>
+                                <flux:button size="sm" variant="primary" icon="arrow-right" :href="route('panel.listings.edit', $business->openListing)" wire:navigate>
                                     {{ __('Continue') }}
                                 </flux:button>
                             @else
-                                <flux:button size="sm" variant="ghost" :href="route('listings.index')" wire:navigate>
+                                <flux:button size="sm" variant="ghost" :href="route('panel.listings.index')" wire:navigate>
                                     {{ __('See listing') }}
                                 </flux:button>
                             @endif

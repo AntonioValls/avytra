@@ -43,7 +43,7 @@ Acciones por estado:
 
 Confirmaciones destructivas (archivar, marcar vendida, eliminar borrador) con `flux:modal`.
 
-Implementación (Phase 3): `pages::listings.index` con un único modal de confirmación parametrizado por acción y el parcial `partials/listing-actions` compartido por la tabla (escritorio) y las tarjetas (móvil). "Ver" público llega con la ficha de Phase 4.
+Implementación (Phase 3): `pages::listings.index` con un único modal de confirmación parametrizado por acción y el parcial `partials/listing-actions` compartido por la tabla (escritorio) y las tarjetas (móvil). Desde Phase 4 las rutas del panel de publicaciones se llaman `panel.listings.index|create|edit` (el nombre `listings.index` pertenece a explorar, docs/08).
 
 ## Wizard de publicación (`/panel/publicaciones/nueva`, `/panel/publicaciones/{listing}/editar`)
 
@@ -71,7 +71,7 @@ Reglas:
 - Superadmin: el mismo wizard con un selector de propietario en el paso 1.
 - Edición posterior: mismo componente en modo edición, acceso directo a cualquier paso.
 
-Implementación (Phase 3): `pages::listings.wizard` con `?paso=N` en la URL, Form Objects en `App\Livewire\Forms\ListingWizard\*` (reutiliza `BusinessForm`, `LocationForm` y `OnlineProfileForm` en los pasos 2 y 5). Con una empresa existente el borrador se crea al completar el paso 1; con una empresa nueva, al completar el paso 2 (nombre y sector son obligatorios en base de datos). A partir de ahí la navegación entre pasos es libre y cada avance persiste. El paso 7 muestra un aviso hasta Phase 6. La vista previa del paso 8 es un resumen propio del wizard; Phase 4 la sustituirá por el parcial público. Las tarjetas de empresa enlazan con `?empresa=ID` para preseleccionarla.
+Implementación (Phase 3): `pages::listings.wizard` con `?paso=N` en la URL, Form Objects en `App\Livewire\Forms\ListingWizard\*` (reutiliza `BusinessForm`, `LocationForm` y `OnlineProfileForm` en los pasos 2 y 5). Con una empresa existente el borrador se crea al completar el paso 1; con una empresa nueva, al completar el paso 2 (nombre y sector son obligatorios en base de datos). A partir de ahí la navegación entre pasos es libre y cada avance persiste. El paso 7 muestra un aviso hasta Phase 6. Desde Phase 4 la vista previa del paso 8 renderiza el parcial público real (`public/listings/partials/content`) a través de `PublicListingPresenter::withTitle()`, con el título que se está escribiendo. Las tarjetas de empresa enlazan con `?empresa=ID` para preseleccionarla.
 
 ## Administración (`/admin`)
 
@@ -83,7 +83,7 @@ Mismo layout de app con una sección de navegación "Administración" visible so
 | `/admin/usuarios` | Tabla con búsqueda; ver detalle (empresas y publicaciones); crear usuario en nombre de otra persona (nombre, email, teléfono; contraseña aleatoria; opción de enviar email de "establece tu contraseña"). |
 | `/admin/empresas` | Tabla con filtros (propietario, tipo, sector); crear/editar con selector de propietario; cambiar propietario (con confirmación y audit). |
 | `/admin/publicaciones` | Tabla con filtros por texto, estado y condición (necesita confirmación, publicadas en 24 h). El detalle `/admin/publicaciones/{listing}` concentra las acciones: publicar, pausar, reactivar, confirmar en nombre del propietario, marcar vendida, archivar, suspender (con motivo), levantar suspensión, cambiar URL (con redirección). Timeline de eventos (`flux:timeline` Pro). Phase 3. |
-| `/admin/reportes` | Bandeja de reportes: abrir, ver publicación, resolver (con acción rápida: pausar/suspender/archivar) o descartar. |
+| `/admin/reportes` | Bandeja de reportes: abrir, ver publicación, resolver (con acción rápida: pausar/suspender/archivar) o descartar. Phase 4: `pages::admin.reports.index`, filtro por estado en la URL (`estado`), modal de resolución con notas (usadas como motivo si se suspende) y audit `listing_report.resolved|dismissed`. |
 | `/admin/auditoria` | Audit log filtrable por actor, acción, recurso. |
 
 Búsqueda global con `flux:command` (Ctrl/Cmd+K) sobre usuarios, empresas y publicaciones: mejora de bajo coste, Phase 8 si el tiempo lo permite.

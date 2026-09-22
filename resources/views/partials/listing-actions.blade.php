@@ -1,7 +1,7 @@
 @php
     /** @var \App\Models\Listing $listing */
     $status = $listing->status;
-    $editRoute = ($admin ?? false) ? 'admin.listings.edit' : 'listings.edit';
+    $editRoute = ($admin ?? false) ? 'admin.listings.edit' : 'panel.listings.edit';
 @endphp
 
 {{-- Actions of a listing in the panel, by status (docs/09-dashboard-and-admin.md). Every action re-authorizes server side. --}}

@@ -102,7 +102,7 @@ new class extends Component {
             return;
         }
 
-        $this->redirectRoute('listings.edit', ['listing' => $draft], navigate: true);
+        $this->redirectRoute('panel.listings.edit', ['listing' => $draft], navigate: true);
     }
 
     /**
@@ -186,7 +186,7 @@ new class extends Component {
         </div>
 
         @if ($this->listings->isNotEmpty())
-            <flux:button variant="primary" icon="plus" :href="route('listings.create')" wire:navigate>
+            <flux:button variant="primary" icon="plus" :href="route('panel.listings.create')" wire:navigate>
                 {{ __('New listing') }}
             </flux:button>
         @endif
@@ -197,7 +197,7 @@ new class extends Component {
             :heading="__('You do not have any listings yet.')"
             :text="__('When you publish your first business it will appear here. It takes eight short steps and you can stop at any time.')"
         >
-            <flux:button variant="primary" icon="plus" :href="route('listings.create')" wire:navigate>
+            <flux:button variant="primary" icon="plus" :href="route('panel.listings.create')" wire:navigate>
                 {{ __('Publish a business') }}
             </flux:button>
         </x-empty-state>

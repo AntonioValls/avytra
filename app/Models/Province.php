@@ -56,4 +56,12 @@ class Province extends Model
     {
         return $this->hasMany(Municipality::class)->orderBy('name');
     }
+
+    /**
+     * @return HasMany<Location, $this>
+     */
+    public function locations(): HasMany
+    {
+        return $this->hasMany(Location::class);
+    }
 }

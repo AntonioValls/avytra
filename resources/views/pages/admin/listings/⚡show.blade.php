@@ -278,7 +278,7 @@ new class extends Component {
             <flux:card class="flex flex-col gap-4">
                 <flux:heading size="lg" level="2">{{ __('Summary') }}</flux:heading>
                 <dl class="grid gap-3 text-sm sm:grid-cols-2">
-                    <div><dt class="text-slate">{{ __('Price') }}</dt><dd><x-price :listing="$listing" size="sm" /></dd></div>
+                    <div><dt class="text-slate">{{ __('Price') }}</dt><dd><x-price :text="\App\Support\Listings\PriceFormatter::forListing($listing)" :negotiable="$listing->is_price_negotiable" size="sm" /></dd></div>
                     <div><dt class="text-slate">{{ __('Public URL') }}</dt><dd class="font-mono text-xs">{{ $listing->slug ?? '—' }}</dd></div>
                     <div><dt class="text-slate">{{ __('Published') }}</dt><dd>{{ $listing->published_at?->translatedFormat('j M Y, H:i') ?? '—' }}</dd></div>
                     <div><dt class="text-slate">{{ __('Last confirmation') }}</dt><dd>{{ $listing->last_confirmed_at?->translatedFormat('j M Y, H:i') ?? '—' }}</dd></div>

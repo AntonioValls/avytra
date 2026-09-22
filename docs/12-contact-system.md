@@ -58,6 +58,8 @@ Caso real: persona mayor que solo tiene teléfono fijo. `preferred_contact_metho
 
 Datos de contacto de la plataforma en `config/avytra.php` → `support.email`, `support.phone` (env). Se usan en la landing "Publicar", en el pie de página y en el mensaje de publicaciones suspendidas. No es un usuario ni un listing.
 
+Implementación (Phase 4): `resources/views/components/public/⚡contact-box.blade.php`. El presentador distingue canales sensibles (`sensitiveChannel()`: teléfono, WhatsApp, email) de públicos (`publicChannel()`: web, formulario, texto libre). El componente lee los valores en cada render y solo tras `reveal()`; nunca los guarda en propiedades públicas (el snapshot de Livewire viaja en el HTML). Limitador `contact-reveal` (`avytra.contact.reveal_rate_limit_per_hour` por IP). Enlaces `mailto:` y `wa.me` con asunto/mensaje prefijado "Interesado en: {título} — AVYTRA".
+
 ## Tests previstos
 
 - Publicar sin método preferido o sin su canal falla con mensaje claro.

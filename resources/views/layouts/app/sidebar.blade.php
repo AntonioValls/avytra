@@ -54,6 +54,9 @@
                         <flux:sidebar.item icon="document-text" :href="route('admin.listings.index')" :current="request()->routeIs('admin.listings.*')" wire:navigate>
                             {{ __('Listings') }}
                         </flux:sidebar.item>
+                        <flux:sidebar.item icon="flag" :href="route('admin.reports.index')" :current="request()->routeIs('admin.reports.*')" wire:navigate>
+                            {{ __('Reports') }}
+                        </flux:sidebar.item>
                     @else
                         <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                             {{ __('Home') }}
@@ -61,7 +64,7 @@
                         <flux:sidebar.item icon="building-storefront" :href="route('businesses.index')" :current="request()->routeIs('businesses.*')" wire:navigate>
                             {{ __('My businesses') }}
                         </flux:sidebar.item>
-                        <flux:sidebar.item icon="document-text" :href="route('listings.index')" :current="request()->routeIs('listings.*')" wire:navigate>
+                        <flux:sidebar.item icon="document-text" :href="route('panel.listings.index')" :current="request()->routeIs('panel.listings.*')" wire:navigate>
                             {{ __('My listings') }}
                         </flux:sidebar.item>
                     @endif

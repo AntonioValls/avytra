@@ -183,6 +183,14 @@ class Listing extends Model
     }
 
     /**
+     * @return HasMany<ListingReport, $this>
+     */
+    public function reports(): HasMany
+    {
+        return $this->hasMany(ListingReport::class);
+    }
+
+    /**
      * Listings whose business belongs to the user.
      *
      * @param  Builder<Listing>  $query

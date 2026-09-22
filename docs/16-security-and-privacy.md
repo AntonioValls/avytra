@@ -92,6 +92,8 @@ Inventario de datos sensibles y dónde se decide su visibilidad:
 | Identidad del vendedor | `users.name` | Nunca pública; solo `contact_name` de la publicación |
 | Visitas mensuales | `online_profiles` | `monthly_visits_disclosure` |
 
+Implementado en Phase 4: `App\Support\Listings\PublicListingPresenter` (constante `RELATIONS` para el eager loading; `withTitle()` para la vista previa del wizard) y tests `Support/PublicListingPresenterTest` y `Public/ListingShowTest` ("never leaks").
+
 **Proyección pública obligatoria:** la ficha, la tarjeta, el JSON-LD, el sitemap y cualquier salida pública se construyen desde `App\Support\Listings\PublicListingPresenter` (o similar), que recibe el `Listing` y expone únicamente atributos ya filtrados por visibilidad. Está prohibido pasar el modelo Eloquent completo a vistas públicas o serializarlo a JSON. Un test recorre las vistas públicas y afirma que no aparecen `legal_name`, `latitude`, `address_line` (salvo `exact`), email del usuario, etc.
 
 ## Auditoría (estrategia proporcionada)

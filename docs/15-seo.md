@@ -64,6 +64,8 @@ Open Graph: `og:type` (`website` / `article` para ficha), `og:title`, `og:descri
 | Borrador | 404 (propietario/admin: 200 con banner) | — | No | |
 | Slug antiguo | 301 → slug actual | — | — | |
 
+Implementación (Phase 4): `PublicListingPresenter::pageMeta()` construye título, descripción, canonical, robots y el JSON-LD `Offer` + `BreadcrumbList` de la ficha; la home emite `WebSite` con `SearchAction`; explorar/categoría/provincia/online calculan canonical y `noindex` en el propio componente. Tratamiento de estados (200/404/410/301) en `ListingController`. Pendiente para Phase 9: sitemap, `robots.txt` por ruta, `ItemList`, OG images y la redirección 301 de `?sector=`/`?provincia=` (hoy solo se ajusta el canonical).
+
 ## Sitemap y robots
 
 - `/sitemap.xml` generado por controlador propio (sin paquete), cacheado 1 h e invalidado por eventos de publicación (`LISTING_CACHE_KEYS` pattern de ParkingParaCamiones): home, explorar, estáticas, categorías y provincias con contenido, fichas visibles con `lastmod`. Un solo archivo hasta 50.000 URLs; índice de sitemaps cuando haga falta.

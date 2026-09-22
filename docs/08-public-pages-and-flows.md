@@ -66,6 +66,8 @@ Fuera del MVP: facturación, antigüedad, negociable, radio geográfico, subsect
 
 Fuera del MVP como pestaña completa. Phase 5 añade un mapa opcional en explorar (toggle "Ver mapa") que muestra las publicaciones **con ubicación pública** de la página actual, con círculos para aproximadas. Ver [10-location-and-maps.md](10-location-and-maps.md).
 
+Implementación (Phase 4): un único componente `pages::public.listings.index` sirve `/empresas`, `/empresas/categoria/{slug}`, `/empresas/provincia/{slug}` y `/negocios-online`; la ruta fija un filtro (`category`, `province` u `online=true` como valor por defecto) y el componente ajusta título, introducción, canonical y `noindex` cuando la página fija está vacía. Parámetros de URL: `q`, `sector` (slug), `tipo` (`fisico`/`online`/`hibrido`), `operacion` (valor del enum `OperationType`), `provincia` (slug), `precio_min`, `precio_max`, `orden` (`recientes`, `confirmadas`, `precio_asc`, `precio_desc`). El filtro de precio compara con el precio exacto o con el extremo del rango que puede satisfacerlo y deja fuera las publicaciones "a consultar"; al ordenar por precio, las que lo tienen van primero. Los recuentos por sector/provincia del footer y la home salen de `App\Support\Listings\MarketplaceAggregates` (caché de arrays planos, 15 min).
+
 ## Tarjeta de publicación
 
 Componente Blade puro (`<x-listing-card :listing="$listing" />`), no Livewire. Datos:
@@ -79,6 +81,8 @@ Componente Blade puro (`<x-listing-card :listing="$listing" />`), no Livewire. D
 - Pie: "Confirmada hace 8 días" (icono check). Si `sold`: badge "Vendida".
 
 Toda la tarjeta es un enlace con `wire:navigate`.
+
+Implementación (Phase 4): `x-listing-card` recibe el `PublicListingPresenter`, nunca el modelo. Portada con placeholder de marca hasta Phase 6. `x-price` y `x-freshness-badge` son puramente presentacionales (texto ya formateado por `PriceFormatter`/el presentador).
 
 ## Ficha de publicación (`/empresas/{slug}`)
 
@@ -110,13 +114,19 @@ Estructura:
 
 Mismo layout con banner "Esta empresa ya ha cambiado de manos" y sin bloque de contacto. Se mantiene pública `sold_visible_days` (configurable, 30 por defecto) para transmitir que la plataforma funciona; después, `noindex` y fuera de listados.
 
+Implementación (Phase 4): `ListingController@show` resuelve el slug (con `listing_slug_redirects` → 301), responde 410 a archivadas y borradas, 404 a no públicas (200 con banner para propietario y superadmin) y 200 con `noindex` a vendidas antiguas. La vista recibe solo el presentador, el parcial `public/listings/partials/content` (compartido con la vista previa del paso 8 del wizard) y dos islas Livewire: `public.contact-box` (revelación con `RateLimiter` `contact-reveal`, valores nunca en el estado del componente) y `public.report-listing`. Mapa e imágenes reales llegan en Phases 5 y 6; el lightbox Alpine queda preparado con la lista de imágenes vacía. Barra inferior fija "Contactar" en móvil.
+
 ## Reportar publicación
 
 Modal Flux desde la ficha. Campos: motivo (`flux:radio.group`), mensaje opcional, email opcional (obligatorio si no hay sesión, para poder responder; no se publica). Honeypot + rate limit por IP (3 por hora) + máximo un reporte abierto por listing y `ip_hash`. Confirmación con `flux:toast`. El superadmin lo ve en `/admin/reportes`.
 
+Implementación (Phase 4): tabla `listing_reports`, enums `ListingReportReason` y `ListingReportStatus`, Actions `SubmitListingReport` y `ResolveListingReport`, notificación `ListingReportReceived` a todos los superadmins, `ListingReportPolicy`. Honeypot + tiempo mínimo (`avytra.reports.min_seconds_to_submit`) + limitador `report` + un reporte abierto por publicación y visitante (usuario o hash de IP con la clave de la app). La ruta directa `/publicaciones/{slug}/reportar` no se ha creado: el modal cubre el caso y evita una página indexable.
+
 ## Landing "Publicar" (`/publicar`)
 
 Explica: gratis, pasos del wizard, privacidad (ubicación aproximada, cifras ocultables), confirmación de disponibilidad. CTA → registro (o wizard si ya hay sesión). Incluye "¿Prefieres que lo hagamos por ti?" con teléfono/email de AVYTRA (dato de config, no de un usuario), para el público poco tecnológico.
+
+Implementación (Phase 4): `public/publish`, `public/how-it-works` y las tres legales (`public/legal/*` sobre el componente `x-public.legal-page`, con aviso de texto provisional). El CTA lleva al registro o al wizard según haya sesión; el teléfono y el email de soporte salen de `config('avytra.support')`.
 
 ## Estados y errores
 
