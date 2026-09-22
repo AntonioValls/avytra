@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Support\Location\PublicPointDeriver;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
@@ -19,7 +20,20 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(PublicPointDeriver::class, function (): PublicPointDeriver {
+            /** @var array{jitter_salt: string, approximate_radius_m: int, approximate_offset_min_m: int, approximate_offset_max_m: int, city_only_radius_m: array{default: int, by_population: array<int, int>, max: int}} $location */
+            $location = config('avytra.location');
+
+            return new PublicPointDeriver(
+                salt: $location['jitter_salt'],
+                approximateRadiusM: $location['approximate_radius_m'],
+                minOffsetM: $location['approximate_offset_min_m'],
+                maxOffsetM: $location['approximate_offset_max_m'],
+                cityDefaultRadiusM: $location['city_only_radius_m']['default'],
+                cityRadiusByPopulation: $location['city_only_radius_m']['by_population'],
+                cityMaxRadiusM: $location['city_only_radius_m']['max'],
+            );
+        });
     }
 
     /**

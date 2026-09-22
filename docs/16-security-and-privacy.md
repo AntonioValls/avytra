@@ -106,7 +106,7 @@ Inventario de datos sensibles y dónde se decide su visibilidad:
 
 - Páginas de aviso legal, privacidad y cookies con texto real antes del lanzamiento (responsabilidad del propietario del proyecto; se dejan plantillas).
 - Cookies: solo técnicas (sesión, XSRF) en MVP → banner informativo simple, sin gestor de consentimiento. Si se añaden analíticas, se incorpora consentimiento.
-- Eliminación de cuenta (starter kit): en Phase 2 se define el efecto sobre empresas/publicaciones (archivar y anonimizar contacto). Los `audit_logs` conservan `actor_user_id` en `null` tras borrado (nullOnDelete).
+- Eliminación de cuenta: borra las empresas del usuario con ubicación y perfil online (Action `DeleteUserAccount`, ADR-017); en Phase 3 archiva y borra también sus publicaciones. Los `audit_logs` conservan `actor_user_id` en `null` tras borrado (nullOnDelete).
 - Exportación de datos: fuera del MVP.
 
 ## Superadmin

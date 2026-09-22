@@ -1,6 +1,6 @@
 @props([
     'title' => null,
-    'area' => 'app',
+    'area' => null,
 ])
 
 <x-layouts::app.sidebar :title="$title" :area="$area">

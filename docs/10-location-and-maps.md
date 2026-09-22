@@ -36,9 +36,9 @@ El JSON-LD y cualquier endpoint público usan exclusivamente `public_*`. Ver [16
 
 ## Catálogo geográfico
 
-`regions`, `provinces`, `municipalities` con centroides, cargados por seeder desde `database/data/spain/*.csv` (fuente a documentar en el propio seeder: INE para códigos y nombres; centroides desde un dataset abierto con licencia compatible, verificado en Phase 5). Consecuencias:
+`regions`, `provinces`, `municipalities` con centroides y población, cargados por el comando `avytra:import-geography` (idempotente, upsert por código INE) desde `database/data/spain/*.csv`. Fuentes y procesado en `database/data/spain/README.md`: códigos, nombres y centroides del dataset `georef-spain-municipio` de Opendatasoft (derivado del Nomenclátor del IGN, CC BY 4.0); población de Wikidata (CC0). 19 comunidades, 52 provincias, 8.131 municipios. Consecuencias:
 
-- Selects de provincia y municipio sin llamadas externas (`flux:select searchable` para provincia, `flux:autocomplete` para municipio filtrado por provincia).
+- Selects de provincia y municipio sin llamadas externas (`flux:select variant="listbox" searchable` en ambos: el municipio se filtra por provincia en servidor y se elige por id, lo que evita mapear texto a id como exigiría `flux:autocomplete`).
 - `city_only` y `hidden` no necesitan geocodificación.
 - Filtro por provincia por FK, indexado.
 - Nombres normalizados (evita "València"/"Valencia" duplicados).
@@ -50,7 +50,7 @@ Orden de preferencia en el wizard (paso 5):
 1. Selecciona provincia y municipio → el mapa se centra en el centroide del municipio.
 2. Opcionalmente escribe dirección y código postal (privados).
 3. **Arrastra el pin** o hace clic en el mapa para colocar el punto real (`geocoding_source = manual_pin`).
-4. Si no coloca pin, se usa el centroide del municipio (`geocoding_source = municipality_centroid`) y se fuerza `city_only` como visibilidad efectiva (no tiene sentido "aproximada" sin punto real). La UI lo explica.
+4. Si no coloca pin, se usa el centroide del municipio (`geocoding_source = municipality_centroid`) y se fuerza `city_only` como visibilidad efectiva (no tiene sentido "aproximada" sin punto real). La UI lo explica. Implementado en Phase 2 (`SaveBusinessLocation` + `PublicPointDeriver`, `Location::effectiveVisibility()`); hasta Phase 5 el formulario no ofrece pin, así que todas las ubicaciones se publican como `city_only`. El radio de `city_only` sale de `config('avytra.location.city_only_radius_m')` por tramos de población (< 5.000 → 1,5 km; < 20.000 → 2 km; < 100.000 → 3 km; < 500.000 → 4 km; resto 5 km; sin dato 3 km).
 5. Botón "Buscar dirección en el mapa" (geocodificación) — **mejora opcional** dentro de Phase 5, detrás de la interfaz `Geocoder`; si el proveedor no está configurado, el botón no aparece.
 
 Esto hace que el MVP no dependa de ningún geocodificador.

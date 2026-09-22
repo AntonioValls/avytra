@@ -117,4 +117,4 @@ La autorización responde "¿puede este usuario hacer X sobre este recurso?". La
 
 - **¿Puede un usuario tener varias empresas?** Sí, sin límite en el MVP.
 - **¿Puede una empresa cambiar de propietario?** Solo el superadmin (caso: la persona se registra después de que el admin creara la empresa con un usuario provisional).
-- **¿Un usuario puede eliminar su cuenta con empresas publicadas?** El starter kit permite eliminar la cuenta. En Phase 2 se decidirá entre bloquear la eliminación mientras existan publicaciones no archivadas o archivar todo en cascada. Propuesta: archivar en cascada y anonimizar; documentar en ADR cuando se implemente.
+- **¿Un usuario puede eliminar su cuenta con empresas publicadas?** Sí. Eliminar la cuenta borra sus empresas (con ubicación, perfil online y, desde Phase 3, publicaciones) mediante el Action `DeleteUserAccount`. Las empresas que creó para otros como superadmin no se tocan. Decidido en ADR-017.

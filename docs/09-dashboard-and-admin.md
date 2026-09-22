@@ -21,6 +21,8 @@ Tarjetas con: portada/logo, nombre, tipo (badge), sector, número de publicacion
 
 Formulario de empresa (`/panel/empresas/crear`, `/panel/empresas/{business}/editar`): componente Livewire con Form Object. Secciones: datos básicos, ubicación (si físico/híbrido), perfil online (si online/híbrido), imágenes. Se puede crear una empresa sin publicarla.
 
+Implementación (Phase 2): un único componente `pages::businesses.form` con tres Form Objects (`BusinessForm`, `LocationForm`, `OnlineProfileForm`); solo se validan los que aplican al tipo elegido. El mismo componente sirve `/admin/empresas/crear|editar` recibiendo `admin=true` como valor por defecto de la ruta, lo que añade el selector de propietario. El layout del panel deduce el área (`app`/`admin`) del nombre de la ruta.
+
 Nota UX: el wizard de publicación también crea la empresa cuando el usuario empieza por "Publicar" sin tener ninguna; el formulario de empresa independiente existe para editar y para usuarios que quieren preparar datos antes.
 
 ### Mis publicaciones (`/panel/publicaciones`)

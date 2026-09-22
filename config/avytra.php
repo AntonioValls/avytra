@@ -36,7 +36,23 @@ return [
     'location' => [
         // Seeds the deterministic offset applied to approximate public locations.
         'jitter_salt' => env('AVYTRA_LOCATION_SALT', ''),
+        // "Approximate" visibility: the real point is moved between min and max metres
+        // and shown as a circle of approximate_radius_m (always larger than the max offset).
         'approximate_radius_m' => 700,
+        'approximate_offset_min_m' => 250,
+        'approximate_offset_max_m' => 600,
+        // "Municipality only" visibility: circle over the municipality centroid, sized by population.
+        'city_only_radius_m' => [
+            'default' => 3000,
+            // population upper bound (exclusive) => radius in metres
+            'by_population' => [
+                5000 => 1500,
+                20000 => 2000,
+                100000 => 3000,
+                500000 => 4000,
+            ],
+            'max' => 5000,
+        ],
     ],
 
     'map' => [
@@ -56,6 +72,16 @@ return [
     'rate_limits' => [
         'register_per_hour' => 5,
         'public_per_minute' => 60,
+    ],
+
+    'pagination' => [
+        'panel_cards' => 12,
+        'admin_rows' => 25,
+    ],
+
+    'limits' => [
+        // Business description (plain text). The minimum to publish arrives with listings.
+        'description_max_length' => 5000,
     ],
 
 ];

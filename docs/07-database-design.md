@@ -53,7 +53,7 @@ Datos cargados desde archivos en `database/data/` (CSV/JSON con fuente documenta
 
 ```text
 id
-owner_user_id          FK users, restrictOnDelete (decisión de cascada en Phase 2)
+owner_user_id          FK users, restrictOnDelete (la cuenta se borra solo vía DeleteUserAccount, ADR-017)
 created_by_user_id     FK users nullable, nullOnDelete
 updated_by_user_id     FK users nullable, nullOnDelete
 business_type          string(20)                       index

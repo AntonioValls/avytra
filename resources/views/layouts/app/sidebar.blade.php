@@ -1,11 +1,13 @@
 @props([
     'title' => null,
-    'area' => 'app',
+    'area' => null,
 ])
 
 @php
     /** @var \App\Models\User $user */
     $user = auth()->user();
+    // Livewire pages cannot pass layout props per route, so the area follows the route name.
+    $area ??= request()->routeIs('admin.*') ? 'admin' : 'app';
     $isAdminArea = $area === 'admin';
 @endphp
 
@@ -46,9 +48,15 @@
                         <flux:sidebar.item icon="squares-2x2" :href="route('admin.index')" :current="request()->routeIs('admin.index')" wire:navigate>
                             {{ __('Operational summary') }}
                         </flux:sidebar.item>
+                        <flux:sidebar.item icon="building-storefront" :href="route('admin.businesses.index')" :current="request()->routeIs('admin.businesses.*')" wire:navigate>
+                            {{ __('Businesses') }}
+                        </flux:sidebar.item>
                     @else
                         <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                             {{ __('Home') }}
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="building-storefront" :href="route('businesses.index')" :current="request()->routeIs('businesses.*')" wire:navigate>
+                            {{ __('My businesses') }}
                         </flux:sidebar.item>
                     @endif
                 </flux:sidebar.group>

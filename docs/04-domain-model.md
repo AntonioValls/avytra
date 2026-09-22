@@ -134,6 +134,8 @@ Todos son `string` backed enums con métodos `label(): string` (traducible), y c
 | `Disclosure` | `exact`, `range`, `on_request`, `hidden` |
 | `FinancialMetric` | ver arriba |
 | `LocationVisibility` | `exact`, `approximate`, `city_only`, `hidden` |
+| `WebsiteVisibility` | `public`, `private` |
+| `GeocodingSource` | `manual_pin`, `geocoder`, `municipality_centroid` |
 | `ContactMethod` | `email`, `phone`, `whatsapp`, `website`, `external_form`, `other` |
 | `OnlineBusinessType` | `ecommerce`, `saas`, `marketplace`, `content`, `affiliate`, `app`, `service`, `other` |
 | `TechnologyPlatform` | `shopify`, `woocommerce`, `prestashop`, `magento`, `laravel_custom`, `wordpress`, `other` |

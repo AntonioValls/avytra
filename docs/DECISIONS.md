@@ -259,3 +259,21 @@ No está claro si asesores o brokers gestionarán carteras ajenas. Modelar equip
 
 ### Consequences
 Simplicidad máxima en Policies y panel. Ruta de migración documentada en el roadmap: si llegan equipos, se crea `teams` con un equipo personal por usuario y se migra `owner_user_id` → `owner_team_id` en una sola migración de datos; el resto del dominio (`listings`, `locations`, medios) no cambia porque cuelga de `businesses`.
+
+---
+
+## ADR-017 — Eliminar la cuenta elimina las empresas del usuario
+
+Status: Accepted
+Date: 2026-09-22
+
+### Context
+El starter kit permite eliminar la cuenta desde Ajustes. Con empresas (y, desde Phase 3, publicaciones) colgando del usuario había que decidir entre bloquear la eliminación mientras existan recursos, dejar empresas huérfanas (`owner_user_id` nulo) o archivar y anonimizar en cascada. Las empresas huérfanas complican todas las Policies; bloquear la eliminación contradice el derecho de supresión del RGPD; conservar publicaciones anonimizadas aporta poco (solo un 410 en vez de un 404).
+
+### Decision
+Eliminar la cuenta borra de verdad las empresas del usuario (también las que estén en papelera), con su ubicación y perfil online por cascada de base de datos. Lo ejecuta el Action `App\Actions\Users\DeleteUserAccount`, único camino para borrar un usuario; la FK `businesses.owner_user_id` es `restrictOnDelete` como red de seguridad para que nada borre un usuario sin pasar por el Action. En Phase 3 el Action archivará las publicaciones (evento `archived`) y las borrará junto con la empresa; en Phase 6, sus imágenes. Las empresas que ese usuario creó **para otros** (superadmin) no se tocan: solo pierden `created_by_user_id` (`nullOnDelete`). Los `audit_logs` conservan la entrada con `actor_user_id` nulo.
+
+La regla "nunca borrar publicaciones por inactividad" sigue vigente: aplica a la plataforma, no a la voluntad explícita del usuario, que confirma con su contraseña.
+
+### Consequences
+Sin registros huérfanos ni estados especiales en Policies. Se pierde el histórico de esa cuenta, coherente con la supresión solicitada. Si más adelante se necesita retener publicaciones vendidas por motivos legales o estadísticos, se registrará un nuevo ADR con anonimización explícita.

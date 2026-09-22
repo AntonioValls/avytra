@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Business;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -44,7 +46,18 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+function actingAsSuperadmin(): User
 {
-    // ..
+    $superadmin = User::factory()->superadmin()->create();
+
+    test()->actingAs($superadmin);
+
+    return $superadmin;
+}
+
+function actingAsOwnerOf(Business $business): User
+{
+    test()->actingAs($business->owner);
+
+    return $business->owner;
 }

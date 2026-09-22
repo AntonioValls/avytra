@@ -2,6 +2,33 @@
 
 Formato: una sección por fase cerrada, con fecha. Cambios de documentación relevantes también se anotan.
 
+## [Phase 2] — 2026-09-22 — Dominio de empresas
+
+### Añadido
+- Tablas `categories`, `regions`, `provinces`, `municipalities`, `businesses`, `locations`, `online_profiles` con sus modelos, factories (estados `physical/online/hybrid`, `withLocation`, `withOnlineProfile`, `ownedBy`, `createdBy`; `Location` con `exact/approximate/cityOnly/hidden/withCoordinates`) y PHPDoc para Larastan.
+- Enums `BusinessType`, `LegalForm`, `EmployeeRange`, `LocationVisibility`, `WebsiteVisibility`, `GeocodingSource`, `OnlineBusinessType`, `TechnologyPlatform`, `LogisticsType`, `AcquisitionChannel`, `Disclosure`, todos con `label()`.
+- Catálogo geográfico: `database/data/spain/{regions,provinces,municipalities}.csv` (19/52/8.131, con centroides y población; fuentes en `database/data/spain/README.md`) y comando idempotente `avytra:import-geography`.
+- `CategorySeeder` con 16 sectores y 80 subsectores reales; `DatabaseSeeder` siembra categorías y geografía.
+- Trait `App\Concerns\TracksAuthorship` (aplicado a `Business`).
+- `BusinessPolicy` con `before()` para superadmin y habilidad `transferOwnership`.
+- Actions `CreateBusiness`, `UpdateBusiness` (mantiene coherencia tipo ↔ ubicación/perfil online), `TransferBusinessOwnership`, `SaveBusinessLocation` (único punto que escribe `public_*`), `DeleteUserAccount` (ADR-017).
+- `App\Support\Location\{PublicPointDeriver, PublicPoint, Coordinates}`: derivación de coordenadas públicas por visibilidad con desplazamiento determinista y radios por población. Registrado en el contenedor desde `config/avytra.php`.
+- Form Objects `BusinessForm`, `LocationForm`, `OnlineProfileForm`.
+- Páginas Livewire `pages::dashboard`, `pages::businesses.index`, `pages::businesses.form` (compartida con admin) y `pages::admin.businesses.index` (tabla, filtros por texto/tipo/sector en URL, cambio de propietario con modal y audit).
+- Rutas `/panel/empresas`, `/panel/empresas/crear`, `/panel/empresas/{business}/editar`, `/admin/empresas`, `/admin/empresas/crear`, `/admin/empresas/{business}/editar`.
+- Componente Blade `x-empty-state`. Entradas "Mis empresas" y "Empresas" en el sidebar.
+- Config: `avytra.location.approximate_offset_{min,max}_m`, `avytra.location.city_only_radius_m`, `avytra.pagination.*`, `avytra.limits.description_max_length`.
+- Helpers de test `actingAsSuperadmin()` y `actingAsOwnerOf()`.
+- Tests: `PublicPointDeriverTest` (unit), `BusinessPolicyTest`, `TracksAuthorshipTest`, `CreateBusinessTest`, `UpdateBusinessTest`, `TransferBusinessOwnershipTest`, `SaveBusinessLocationTest`, `DeleteUserAccountTest`, `ImportSpanishGeographyTest`, `CategorySeederTest`, `BusinessFormTest`, `BusinessIndexTest`, `AdminBusinessesTest`; invariante de config de ubicación.
+- 199 cadenas nuevas en `lang/es.json`.
+
+### Cambiado
+- `/panel` pasa de vista estática a componente Livewire `pages::dashboard` (muestra las empresas del usuario o el estado vacío con enlace a crear).
+- `layouts/app` deduce `area` del nombre de la ruta cuando no se indica.
+- Eliminar cuenta (`settings/⚡delete-user-modal`) usa `DeleteUserAccount`.
+- `User::businesses()`.
+- Documentación: ADR-017; docs 03, 04, 07, 09, 10 y 16 actualizados.
+
 ## [Phase 1] — 2026-09-21 — Fundamentos del proyecto
 
 ### Añadido

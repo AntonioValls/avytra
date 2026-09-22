@@ -5,7 +5,11 @@ use Illuminate\Support\Facades\Route;
 Route::view('/', 'public.home')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::view('panel', 'dashboard')->name('dashboard');
+    Route::livewire('panel', 'pages::dashboard')->name('dashboard');
+
+    Route::livewire('panel/empresas', 'pages::businesses.index')->name('businesses.index');
+    Route::livewire('panel/empresas/crear', 'pages::businesses.form')->name('businesses.create');
+    Route::livewire('panel/empresas/{business}/editar', 'pages::businesses.form')->name('businesses.edit');
 });
 
 require __DIR__.'/settings.php';
