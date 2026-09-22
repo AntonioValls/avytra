@@ -25,7 +25,7 @@ Subcategorías y municipios no tienen URL propia en el MVP (se filtran por query
 ## Slugs
 
 - Generados desde `listings.title` con `Str::slug`, únicos con sufijo numérico (`-2`, `-3`), comprobando también registros borrados lógicamente y `listing_slug_redirects`.
-- Se generan al crear el borrador (título sugerido) y se **regeneran al publicar por primera vez** si el título cambió durante el wizard. Tras publicar, cambiar el título **no** cambia el slug automáticamente; el propietario puede pedir "actualizar la URL" (acción explícita) y entonces el slug antiguo se guarda en `listing_slug_redirects` → 301 permanente.
+- Se generan **al publicar por primera vez** a partir del título definitivo (el borrador no tiene slug; `ListingSlugger`, Phase 3). Tras publicar, cambiar el título **no** cambia el slug automáticamente; el propietario puede pedir "actualizar la URL" (acción explícita) y entonces el slug antiguo se guarda en `listing_slug_redirects` → 301 permanente.
 - El superadmin puede editar el slug directamente (con redirección automática).
 - Nunca se reutiliza un slug antiguo para otra publicación.
 - Slugs reservados: los que colisionen con rutas (`categoria`, `provincia`) se evitan con validación.

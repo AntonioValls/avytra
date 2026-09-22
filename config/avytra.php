@@ -80,8 +80,13 @@ return [
     ],
 
     'limits' => [
-        // Business description (plain text). The minimum to publish arrives with listings.
+        // Business description (plain text): maximum stored, minimum required to publish.
         'description_max_length' => 5000,
+        'description_min_length_to_publish' => 200,
+        // Listing title and highlights.
+        'title_max_length' => 90,
+        'highlights_max' => 5,
+        'highlight_max_length' => 120,
     ],
 
 ];

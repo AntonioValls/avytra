@@ -2,9 +2,9 @@
 
 ## Current phase
 
-**Phase 2 — Dominio de empresas: implementada, pendiente de revisión visual del propietario** (última tarea de la Definition of Done). Al aprobarla, comienza Phase 3 — Publicaciones.
+**Phase 3 — Publicaciones: implementada, pendiente de revisión visual del propietario** (última tarea de la Definition of Done). Al aprobarla, comienza Phase 4 — Marketplace público.
 
-Phase 1 se dio por aprobada el 2026-09-22 al pedir el propietario el inicio de Phase 2.
+Phase 2 se dio por aprobada el 2026-09-22 al pedir el propietario el inicio de Phase 3.
 
 ## Completed
 
@@ -15,13 +15,23 @@ Phase 1 se dio por aprobada el 2026-09-22 al pedir el propietario el inicio de P
 - Configuración, marca, layouts (`public`, `app` con área admin, `auth`), traducción, roles y comando `avytra:superadmin`, middleware `superadmin` (404), panel `/panel`, `/admin`, tabla `audit_logs` + `AuditLogger`, rate limiters `register` y `public`. Detalle en `CHANGELOG.md`.
 
 ### Phase 2 — Dominio de empresas (2026-09-22)
-- Modelo: `Category`, `Region`, `Province`, `Municipality`, `Business` (soft deletes, `TracksAuthorship`), `Location`, `OnlineProfile`; once enums; factories con estados.
-- Catálogo geográfico real (19 comunidades, 52 provincias, 8.131 municipios con centroide y población) en `database/data/spain/` con fuentes documentadas; comando `avytra:import-geography` idempotente. `CategorySeeder` con 16 sectores y 80 subsectores.
-- `BusinessPolicy` (matriz completa con tests) y Actions `CreateBusiness`, `UpdateBusiness`, `TransferBusinessOwnership`, `SaveBusinessLocation`, `DeleteUserAccount`. Auditoría cuando el superadmin crea, edita o transfiere empresas ajenas.
-- `PublicPointDeriver`: coordenadas públicas por visibilidad (exacta, aproximada con desplazamiento determinista 250–600 m dentro de 700 m, solo municipio con radio por población, oculta). Solo `SaveBusinessLocation` escribe `public_*`.
-- Panel: `/panel` (Livewire, tarjetas de empresas o estado vacío), `/panel/empresas` (tarjetas, paginación, estado vacío), formulario crear/editar con secciones condicionadas por tipo (ubicación con provincia/municipio/dirección privada/visibilidad; perfil online con acordeón "más datos").
-- Admin: `/admin/empresas` (tabla, filtros por texto/tipo/sector en la URL, crear con selector de propietario, editar, cambiar propietario con modal y audit).
-- ADR-017: eliminar la cuenta borra las empresas del usuario (Action `DeleteUserAccount`; FK `restrictOnDelete` como red de seguridad).
+- Modelo `Business` + `Location` + `OnlineProfile`, catálogo geográfico y de sectores, `BusinessPolicy`, Actions de empresa, `PublicPointDeriver`, panel y admin de empresas. Detalle en `CHANGELOG.md`.
+
+### Phase 3 — Publicaciones (2026-09-22)
+- Tablas `listings`, `listing_operation_types`, `listing_financial_metrics`, `listing_events`, `listing_slug_redirects`; modelos, factories con estados (`bare`, `draft`, `published`, `needingConfirmation`, `paused`, `expired`, `sold`, `archived`, `suspended`, `offering`, `priceRange`, `priceOnRequest`).
+- Enums `ListingStatus` (tabla de transiciones en el propio enum), `OperationType`, `PriceDisclosure`, `FinancialMetric`, `ContactMethod`, `ListingEventType`.
+- `ListingPolicy` (matriz completa con tests) y `BusinessPolicy::delete` restringido a empresas nunca publicadas.
+- Actions: `CreateListingDraft` (invariante "una publicación abierta por empresa", copia desde una anterior para "Publicar de nuevo"), `UpdateListing`, `PublishListing`, `PauseListing`, `ResumeListing`, `ConfirmListingAvailability`, `MarkListingAsSold`, `ArchiveListing`, `SuspendListing`, `UnsuspendListing`, `ExpireListing`, `DeleteListingDraft`, `ChangeListingSlug`. Cada transición registra `listing_events`; las que ejecuta el superadmin sobre publicaciones ajenas quedan en `audit_logs`.
+- `App\Support\Listings`: `ListingPublishabilityValidator` (informe con el paso del wizard que corrige cada carencia), `ListingSlugger` (slug único; evita borrados lógicos, redirecciones antiguas y segmentos de ruta), `ListingTitleSuggester`.
+- Notificaciones `ListingPublished` (primera publicación) y `ListingSuspended`.
+- Wizard `pages::listings.wizard` de 8 pasos con Form Objects por paso, persistencia al completar cada paso, navegación libre entre pasos una vez existe el borrador, "Guardar y salir", modo edición (`?paso=N`), título sugerido, prefill visible del contacto para propietarios, selector de propietario para el superadmin, preselección de empresa desde las tarjetas (`?empresa=ID`). Paso 7 con aviso "disponible próximamente" (decisión: no hacer trabajo desechable antes de Phase 6).
+- `pages::listings.index` (tabla en escritorio, tarjetas en móvil, acciones por estado, modal de confirmación para archivar/vender/eliminar, "Publicar de nuevo").
+- Panel de inicio con avisos accionables (necesita confirmación, pausada automáticamente, borrador sin terminar), lista compacta de publicaciones y tarjetas de empresas con "Nueva publicación" / "Continuar".
+- Admin: `pages::admin.listings.index` (filtros por texto, estado y condición en la URL) y `pages::admin.listings.show` (resumen, timeline de eventos con `flux:timeline`, publicar, pausar, reactivar, confirmar en nombre del propietario, marcar vendida, archivar, suspender con motivo, levantar suspensión, cambiar URL con redirección).
+- `DeleteUserAccount` archiva y borra las publicaciones del usuario (ADR-017).
+- Componentes Blade `x-price` y `x-listing-status-badge`; parciales `partials/listing-actions` y `partials/wizard-metric`.
+- Config: `avytra.limits.description_min_length_to_publish`, `title_max_length`, `highlights_max`, `highlight_max_length`.
+- 303 cadenas nuevas en `lang/es.json`.
 
 ## In progress
 
@@ -29,27 +39,28 @@ Phase 1 se dio por aprobada el 2026-09-22 al pedir el propietario el inicio de P
 
 ## Next
 
-- Revisión visual del propietario: `/panel`, `/panel/empresas` (vacío y con datos), formulario en los tres tipos de negocio (móvil y escritorio), `/admin/empresas` con filtros y modal de cambio de propietario. Requiere `npm run build` (o `composer run dev`) para que Tailwind incluya las clases nuevas. Usuario local: `test@example.com` (superadmin restaurado tras `migrate:fresh --seed`).
-- Phase 3 — Publicaciones: `listings` y tablas asociadas, `ListingStatus` con transiciones, `ListingPolicy`, Actions de transición, wizard de 8 pasos, `pages::listings.index`, avisos en el panel, admin de publicaciones. Al llegar: restringir `BusinessPolicy::delete` (sin publicaciones publicadas/vendidas) y ampliar `DeleteUserAccount` para archivar y borrar publicaciones.
+- Revisión visual del propietario: wizard completo en los tres tipos de negocio (móvil y escritorio), `/panel/publicaciones` con cada estado, avisos del panel de inicio, `/admin/publicaciones` y su detalle (suspender, timeline, cambiar URL). Requiere `npm run build` (o `composer run dev`). Usuario local: `test@example.com`.
+- Phase 4 — Marketplace público: `PublicListingPresenter`, home real, explorar con filtros, `x-listing-card`, `x-freshness-badge`, ficha pública con revelación de contacto, páginas de categoría/provincia, reportes, páginas estáticas. La vista previa del paso 8 del wizard debe sustituirse entonces por el parcial público real.
 
 ## Blockers
 
 - Ninguno. Aprobaciones pendientes en su fase: `maplibre-gl` (Phase 5), `spatie/laravel-medialibrary` (Phase 6).
-- Notas aceptadas de Phase 2:
-  - El formulario no ofrece latitud/longitud hasta el picker de mapa (Phase 5); el Action ya las acepta y deriva. Mientras tanto toda ubicación se publica como "solo municipio" (`Location::effectiveVisibility()`), y la UI lo explica con un aviso.
-  - Municipio con `flux:select variant="listbox" searchable` en lugar de `flux:autocomplete` (se elige por id; documentado en `docs/10`).
-  - `BusinessPolicy::delete` existe y está testeada, pero no hay botón de eliminar empresa hasta que Phase 3 aporte la condición sobre publicaciones.
-  - Las tarjetas de "Mis empresas" muestran "Sin publicaciones todavía"; las acciones "Nueva publicación" y "Ver publicación activa" llegan en Phase 3.
-  - El limitador `register` sigue pendiente de aplicarse (Phase 10).
+- Notas aceptadas de Phase 3:
+  - `listings.title` y `listings.slug` son `nullable`: el borrador se crea en el paso 1 sin título; ambos son obligatorios para publicar y el slug se fija al publicar por primera vez (docs/07 y docs/15 actualizados).
+  - Cuando la empresa es nueva, el borrador se crea al completar el paso 2 (la empresa necesita nombre y sector); con una empresa existente, en el paso 1. En ambos casos el resto de pasos persiste al avanzar.
+  - `flux:phone` devuelve el número en formato E.164; la validación acepta `+` y dígitos con separadores y no normaliza más.
+  - Los booleanos "qué se incluye" se editan con `flux:radio.group variant="segmented"` (Sí / No / Sin indicar) para conservar el tri-estado.
+  - `ExpireListing` no envía notificación: la envía el comando de vigencia de Phase 7.
+  - El límite `register` sigue pendiente de aplicarse (Phase 10).
 
 ## Important decisions
 
-Ver `docs/DECISIONS.md` (ADR-001…017). Decisiones menores de Phase 2: el componente `pages::businesses.form` se comparte entre panel y admin recibiendo `admin=true` como valor por defecto de la ruta; el layout `app` deduce el área del nombre de la ruta; los radios del círculo "solo municipio" salen de `config/avytra.php` por tramos de población.
+Ver `docs/DECISIONS.md` (ADR-001…017). Decisiones menores de Phase 3: el wizard se comparte entre panel y admin con `admin=true` como valor por defecto de ruta (igual que el formulario de empresa); las acciones de listado y admin traducen `InvalidListingTransition` a un toast en lugar de fallar; el informe de publicabilidad del paso 8 se evalúa con el título tecleado o el sugerido, para que el botón "Publicar" refleje lo que realmente se guardará.
 
 ## Last tests executed
 
-- 2026-09-22 — `composer test` (Pint + Larastan nivel 7 + Pest): **141 tests, 716 aserciones, todo en verde.** Nuevos: `Unit/Support/Location/PublicPointDeriverTest`, `Policies/BusinessPolicyTest`, `Concerns/TracksAuthorshipTest`, `Actions/Businesses/{CreateBusiness,UpdateBusiness,TransferBusinessOwnership}Test`, `Actions/Locations/SaveBusinessLocationTest`, `Actions/Users/DeleteUserAccountTest`, `Console/ImportSpanishGeographyTest`, `Seeders/CategorySeederTest`, `Businesses/{BusinessForm,BusinessIndex}Test`, `Admin/AdminBusinessesTest`; `Config/AvytraConfigTest` ampliado.
+- 2026-09-22 — `composer test` (Pint + Larastan nivel 7 + Pest): **330 tests, 1.197 aserciones, todo en verde.** Nuevos: `Unit/Enums/ListingStatusTest` (dataset de 49 transiciones), `Policies/ListingPolicyTest`, `Actions/Listings/{ListingTransitions,CreateListingDraft,ChangeListingSlug}Test`, `Support/ListingPublishabilityValidatorTest`, `Listings/{ListingWizard,ListingIndex}Test`, `Admin/AdminListingsTest`; ampliados `Policies/BusinessPolicyTest` y `Actions/Users/DeleteUserAccountTest`.
 
 ## Last updated
 
-2026-09-22 — Phase 2 implementada y verificada con tests.
+2026-09-22 — Phase 3 implementada y verificada con tests.

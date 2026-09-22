@@ -2,6 +2,7 @@
 
 use App\Actions\Users\DeleteUserAccount;
 use App\Models\Business;
+use App\Models\Listing;
 use App\Models\Location;
 use App\Models\OnlineProfile;
 use App\Models\User;
@@ -31,4 +32,16 @@ test('businesses the user created for somebody else survive the deletion of thei
 
     expect(Business::find($business->id))->not->toBeNull()
         ->and($business->fresh()->created_by_user_id)->toBeNull();
+});
+
+test('deleting an account archives and removes the listings of its businesses', function () {
+    $user = User::factory()->create();
+    $business = Business::factory()->ownedBy($user)->create();
+    $published = Listing::factory()->forBusiness($business)->published()->create();
+
+    app(DeleteUserAccount::class)->handle($user);
+
+    expect(User::find($user->id))->toBeNull()
+        ->and(Listing::withTrashed()->find($published->id))->toBeNull()
+        ->and(Business::withTrashed()->find($business->id))->toBeNull();
 });

@@ -2,6 +2,29 @@
 
 Formato: una sección por fase cerrada, con fecha. Cambios de documentación relevantes también se anotan.
 
+## [Phase 3] — 2026-09-22 — Publicaciones
+
+### Añadido
+- Tablas `listings` (título y slug nullables hasta publicar; índices `(status, published_at)`, `(status, next_confirmation_at)`, `(status, last_confirmed_at)`), `listing_operation_types`, `listing_financial_metrics`, `listing_events`, `listing_slug_redirects`; modelos `Listing` (soft deletes, `TracksAuthorship`, scopes `ownedBy`, `open`, `publiclyVisible`, `needingConfirmation`, `dueForExpiration`; `needsConfirmation()`, `isPubliclyVisible()`, `daysSinceConfirmation()`), `ListingOperationType`, `ListingFinancialMetric`, `ListingEvent`, `ListingSlugRedirect`; factories `ListingFactory` (estados por ciclo de vida, `offering`, `bare`, `priceRange`, `priceOnRequest`), `ListingFinancialMetricFactory`, `ListingEventFactory`.
+- Enums `ListingStatus` (`allowedTransitions()`, `canTransitionTo()`, `isTerminal()`, `isPubliclyVisible()`, `isEditableByOwner()`, `badgeColor()`), `OperationType` (`allowsStake()`, `titlePrefix()`), `PriceDisclosure`, `FinancialMetric` (`isFeatured()`, `appliesTo()`), `ContactMethod` (`channelColumn()`, `actionLabel()`), `ListingEventType`.
+- Excepciones `InvalidListingTransition`, `BusinessAlreadyListed`, `ListingNotPublishable` (con `userMessage()`).
+- `ListingPolicy` con `before()` para superadmin; `BusinessPolicy::delete` exige que ninguna publicación haya sido publicada; `Business::listings()`, `Business::openListing()`, `Business::hasPublishedListings()`, `User::listings()`.
+- Actions `App\Actions\Listings\*`: `CreateListingDraft`, `UpdateListing`, `PublishListing`, `PauseListing`, `ResumeListing`, `ConfirmListingAvailability`, `MarkListingAsSold`, `ArchiveListing`, `SuspendListing`, `UnsuspendListing`, `ExpireListing`, `DeleteListingDraft`, `ChangeListingSlug`, con el trait `Concerns\RecordsListingEvents` (transición guardada por la tabla del enum, evento en `listing_events`, audit cuando el actor no es el propietario, reinicio de vigencia).
+- `App\Support\Listings\{ListingPublishabilityValidator, PublishabilityReport, PublishabilityIssue, ListingSlugger, ListingTitleSuggester}`.
+- Notificaciones en cola `ListingPublished` y `ListingSuspended`.
+- Form Objects `App\Livewire\Forms\ListingWizard\{OperationStepForm, CharacteristicsStepForm, EconomicsStepForm, ContactStepForm, PublishStepForm}`.
+- Páginas Livewire `pages::listings.wizard` (8 pasos; compartida con admin), `pages::listings.index`, `pages::admin.listings.index`, `pages::admin.listings.show`; `pages::dashboard` con avisos accionables y lista de publicaciones.
+- Rutas `/panel/publicaciones`, `/panel/publicaciones/nueva` (`?empresa=ID` preselecciona), `/panel/publicaciones/{listing}/editar` (`?paso=N`), `/admin/publicaciones`, `/admin/publicaciones/nueva`, `/admin/publicaciones/{listing}`, `/admin/publicaciones/{listing}/editar`.
+- Componentes Blade `x-price`, `x-listing-status-badge`; parciales `partials/listing-actions`, `partials/wizard-metric`. Entradas "Mis publicaciones" y "Publicaciones" en el sidebar.
+- Config `avytra.limits.{description_min_length_to_publish, title_max_length, highlights_max, highlight_max_length}`.
+- Tests: `ListingStatusTest` (unit, dataset completo de transiciones), `ListingPolicyTest`, `ListingTransitionsTest`, `CreateListingDraftTest`, `ChangeListingSlugTest`, `ListingPublishabilityValidatorTest`, `ListingWizardTest`, `ListingIndexTest`, `AdminListingsTest`.
+- 303 cadenas nuevas en `lang/es.json`.
+
+### Cambiado
+- `DeleteUserAccount` archiva (evento `archived`) y borra las publicaciones antes de borrar cada empresa.
+- Tarjetas de "Mis empresas" y del panel muestran el estado de la publicación abierta y las acciones "Nueva publicación" / "Continuar" / "Ver publicación".
+- Documentación: docs 04 (evento `created`), 06 (implementación), 07 (`title`/`slug` nullables, índice adicional), 09 (implementación del wizard y de admin), STATUS.
+
 ## [Phase 2] — 2026-09-22 — Dominio de empresas
 
 ### Añadido

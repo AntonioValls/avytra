@@ -88,6 +88,8 @@ Cualquier otra transición lanza `App\Exceptions\InvalidListingTransition`.
 - Todos los timestamps y estados se calculan con `now()` en la zona `Europe/Madrid`.
 - Los umbrales viven en `config/avytra.php` (ver [13-freshness-and-notifications.md](13-freshness-and-notifications.md)).
 
+Implementado en Phase 3: además de los Actions de transición existen `CreateListingDraft` (aplica la invariante de una publicación abierta por empresa y permite copiar una anterior), `UpdateListing` (contenido, tipos de operación y métricas; nunca el estado), `DeleteListingDraft` y `ChangeListingSlug`. El trait `App\Actions\Listings\Concerns\RecordsListingEvents` centraliza la comprobación de la tabla de transiciones, el registro en `listing_events` (con `on_behalf_of_user_id` cuando actúa el superadmin) y la auditoría. `ResumeListing` y `ConfirmListingAvailability` reciben el canal (`dashboard`, `email_link`, `admin`) y lo guardan en el payload del evento.
+
 ## Vista del usuario (badges en panel)
 
 | Estado / condición | Badge | Color Flux |

@@ -133,8 +133,8 @@ status                 string(20) default 'draft'        index
 primary_operation_type string(30)                        index
 stake_percent          unsignedTinyInteger nullable      (1–100; solo operaciones parciales)
 operation_notes        string(500) nullable
-title                  string(120)
-slug                   string(140) unique
+title                  string(120) nullable              (obligatorio para publicar)
+slug                   string(140) nullable unique       (se fija al publicar por primera vez)
 reason_for_sale        string(500) nullable
 highlights             json nullable
 includes_stock         boolean nullable
@@ -171,6 +171,7 @@ suspension_reason      string(500) nullable
 timestamps, softDeletes
 index (status, published_at)
 index (status, next_confirmation_at)
+index (status, last_confirmed_at)
 ```
 
 Nota: la restricción "una publicación no terminada por empresa" se aplica en el Action de creación (no con índice único, porque los estados terminales conviven).

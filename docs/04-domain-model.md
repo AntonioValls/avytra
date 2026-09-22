@@ -104,7 +104,7 @@ Evita 30 columnas en `listings` y permite añadir métricas sin migraciones. El 
 
 ### ListingEvent
 
-Histórico de transiciones y acciones de vigencia de una publicación: `published`, `paused`, `resumed`, `confirmed`, `reminder_sent`, `expired`, `sold`, `archived`, `suspended`, `unsuspended`, `slug_changed`. Con `actor_user_id`, `on_behalf_of_user_id`, `payload` JSON. Es la fuente de "Disponibilidad confirmada hace N días" junto con `last_confirmed_at`, y evita duplicar recordatorios.
+Histórico de transiciones y acciones de vigencia de una publicación: `created`, `published`, `paused`, `resumed`, `confirmed`, `reminder_sent`, `expired`, `sold`, `archived`, `suspended`, `unsuspended`, `slug_changed`. Con `actor_user_id`, `on_behalf_of_user_id`, `payload` JSON. Es la fuente de "Disponibilidad confirmada hace N días" junto con `last_confirmed_at`, y evita duplicar recordatorios.
 
 ### ListingReport
 

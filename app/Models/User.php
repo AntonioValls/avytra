@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
@@ -72,6 +73,16 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     public function businesses(): HasMany
     {
         return $this->hasMany(Business::class, 'owner_user_id');
+    }
+
+    /**
+     * Listings of the businesses this user owns.
+     *
+     * @return HasManyThrough<Listing, Business, $this>
+     */
+    public function listings(): HasManyThrough
+    {
+        return $this->hasManyThrough(Listing::class, Business::class, 'owner_user_id');
     }
 
     /**

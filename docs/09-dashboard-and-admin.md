@@ -43,6 +43,8 @@ Acciones por estado:
 
 Confirmaciones destructivas (archivar, marcar vendida, eliminar borrador) con `flux:modal`.
 
+Implementación (Phase 3): `pages::listings.index` con un único modal de confirmación parametrizado por acción y el parcial `partials/listing-actions` compartido por la tabla (escritorio) y las tarjetas (móvil). "Ver" público llega con la ficha de Phase 4.
+
 ## Wizard de publicación (`/panel/publicaciones/nueva`, `/panel/publicaciones/{listing}/editar`)
 
 Un único componente Livewire de página (`pages::listings.wizard`) con propiedad `step`, Form Objects por paso y persistencia en base de datos **al completar cada paso** (el `Listing` se crea como `draft` en el paso 1; la `Business` se crea o selecciona en el paso 1). Así "abandonar y continuar" no requiere sesión ni estado en memoria.
@@ -69,6 +71,8 @@ Reglas:
 - Superadmin: el mismo wizard con un selector de propietario en el paso 1.
 - Edición posterior: mismo componente en modo edición, acceso directo a cualquier paso.
 
+Implementación (Phase 3): `pages::listings.wizard` con `?paso=N` en la URL, Form Objects en `App\Livewire\Forms\ListingWizard\*` (reutiliza `BusinessForm`, `LocationForm` y `OnlineProfileForm` en los pasos 2 y 5). Con una empresa existente el borrador se crea al completar el paso 1; con una empresa nueva, al completar el paso 2 (nombre y sector son obligatorios en base de datos). A partir de ahí la navegación entre pasos es libre y cada avance persiste. El paso 7 muestra un aviso hasta Phase 6. La vista previa del paso 8 es un resumen propio del wizard; Phase 4 la sustituirá por el parcial público. Las tarjetas de empresa enlazan con `?empresa=ID` para preseleccionarla.
+
 ## Administración (`/admin`)
 
 Mismo layout de app con una sección de navegación "Administración" visible solo para superadmin y color de cabecera diferenciado (Ink) para distinguirlo del panel. Middleware `EnsureUserIsSuperadmin` (respuesta 404 para no revelar la existencia del panel).
@@ -78,7 +82,7 @@ Mismo layout de app con una sección de navegación "Administración" visible so
 | `/admin` | Resumen operativo: publicaciones que necesitan confirmación, pausadas automáticamente en los últimos 30 días, reportes abiertos, últimas publicaciones, últimos usuarios. Números y listas, no gráficos. |
 | `/admin/usuarios` | Tabla con búsqueda; ver detalle (empresas y publicaciones); crear usuario en nombre de otra persona (nombre, email, teléfono; contraseña aleatoria; opción de enviar email de "establece tu contraseña"). |
 | `/admin/empresas` | Tabla con filtros (propietario, tipo, sector); crear/editar con selector de propietario; cambiar propietario (con confirmación y audit). |
-| `/admin/publicaciones` | Tabla con filtros por estado y condición (necesita confirmación, caducadas, suspendidas); acciones: publicar, pausar, reactivar, confirmar en nombre del propietario, marcar vendida, archivar, suspender (con motivo), levantar suspensión. Timeline de eventos (`flux:timeline` Pro). |
+| `/admin/publicaciones` | Tabla con filtros por texto, estado y condición (necesita confirmación, publicadas en 24 h). El detalle `/admin/publicaciones/{listing}` concentra las acciones: publicar, pausar, reactivar, confirmar en nombre del propietario, marcar vendida, archivar, suspender (con motivo), levantar suspensión, cambiar URL (con redirección). Timeline de eventos (`flux:timeline` Pro). Phase 3. |
 | `/admin/reportes` | Bandeja de reportes: abrir, ver publicación, resolver (con acción rápida: pausar/suspender/archivar) o descartar. |
 | `/admin/auditoria` | Audit log filtrable por actor, acción, recurso. |
 

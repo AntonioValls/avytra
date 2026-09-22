@@ -42,12 +42,12 @@ class BusinessPolicy
     }
 
     /**
-     * Owners may delete their businesses. Phase 3 adds the restriction
-     * "only when no listing has been published or sold".
+     * Owners may delete a business only while none of its listings has ever been
+     * published (published, paused, expired, sold or suspended ones all count).
      */
     public function delete(User $user, Business $business): bool
     {
-        return $business->isOwnedBy($user);
+        return $business->isOwnedBy($user) && ! $business->hasPublishedListings();
     }
 
     public function transferOwnership(User $user, Business $business): bool

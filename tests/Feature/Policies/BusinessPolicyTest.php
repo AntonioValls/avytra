@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Business;
+use App\Models\Listing;
 use App\Models\User;
 
 test('the owner can view, update and delete their business', function (string $ability) {
@@ -33,3 +34,17 @@ test('any registered user can list and create businesses', function () {
     expect($user->can('viewAny', Business::class))->toBeTrue()
         ->and($user->can('create', Business::class))->toBeTrue();
 });
+
+test('the owner cannot delete a business once one of its listings has been published', function (string $state, bool $expected) {
+    $business = Business::factory()->create();
+    Listing::factory()->forBusiness($business)->{$state}()->create();
+
+    expect($business->owner->can('delete', $business))->toBe($expected)
+        ->and(User::factory()->superadmin()->create()->can('delete', $business))->toBeTrue();
+})->with([
+    'draft' => ['draft', true],
+    'archived draft' => ['archived', true],
+    'published' => ['published', false],
+    'paused' => ['paused', false],
+    'sold' => ['sold', false],
+]);

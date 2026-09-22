@@ -31,7 +31,7 @@ new class extends Component {
     {
         return Business::query()
             ->ownedBy(Auth::user())
-            ->with(['category', 'subcategory', 'location.province', 'location.municipality'])
+            ->with(['category', 'subcategory', 'location.province', 'location.municipality', 'openListing'])
             ->latest('updated_at')
             ->orderByDesc('id')
             ->paginate(config('avytra.pagination.panel_cards'));
@@ -94,11 +94,30 @@ new class extends Component {
 
                     <flux:separator />
 
-                    <div class="flex items-center justify-between gap-2">
-                        <flux:text size="sm">{{ __('No listings yet') }}</flux:text>
-                        <flux:button size="sm" icon="pencil-square" :href="route('businesses.edit', $business)" wire:navigate>
-                            {{ __('Edit') }}
-                        </flux:button>
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        @if ($business->openListing)
+                            <x-listing-status-badge :listing="$business->openListing" />
+                        @else
+                            <flux:text size="sm">{{ __('No listings yet') }}</flux:text>
+                        @endif
+                        <div class="flex gap-2">
+                            <flux:button size="sm" icon="pencil-square" :href="route('businesses.edit', $business)" wire:navigate>
+                                {{ __('Edit') }}
+                            </flux:button>
+                            @if ($business->openListing === null)
+                                <flux:button size="sm" variant="primary" icon="plus" :href="route('listings.create', ['empresa' => $business->id])" wire:navigate>
+                                    {{ __('New listing') }}
+                                </flux:button>
+                            @elseif ($business->openListing->status === \App\Enums\ListingStatus::Draft)
+                                <flux:button size="sm" variant="primary" icon="arrow-right" :href="route('listings.edit', $business->openListing)" wire:navigate>
+                                    {{ __('Continue') }}
+                                </flux:button>
+                            @else
+                                <flux:button size="sm" variant="ghost" :href="route('listings.index')" wire:navigate>
+                                    {{ __('See listing') }}
+                                </flux:button>
+                            @endif
+                        </div>
                     </div>
                 </flux:card>
             @endforeach

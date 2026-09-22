@@ -14,12 +14,13 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
 /**
- * The real company, owned by a user. Publishing it is a Listing (Phase 3).
+ * The real company, owned by a user. Publishing it is a Listing (ADR-001).
  *
  * Ownership and authorship are outside the fillable list on purpose: only the
  * Actions in App\Actions\Businesses assign them.
@@ -120,6 +121,34 @@ class Business extends Model
     public function onlineProfile(): HasOne
     {
         return $this->hasOne(OnlineProfile::class);
+    }
+
+    /**
+     * Every listing of the business, newest first (history included).
+     *
+     * @return HasMany<Listing, $this>
+     */
+    public function listings(): HasMany
+    {
+        return $this->hasMany(Listing::class)->latest('id');
+    }
+
+    /**
+     * The one listing that is not sold nor archived, if any (domain invariant 2).
+     *
+     * @return HasOne<Listing, $this>
+     */
+    public function openListing(): HasOne
+    {
+        return $this->hasOne(Listing::class)->open()->latest('id');
+    }
+
+    /**
+     * Whether any listing was ever published. Such a business cannot be deleted by its owner.
+     */
+    public function hasPublishedListings(): bool
+    {
+        return $this->listings()->whereNotNull('published_at')->exists();
     }
 
     /**
