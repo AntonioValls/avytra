@@ -28,8 +28,8 @@ use App\Livewire\Forms\ListingWizard\ContactStepForm;
 use App\Livewire\Forms\ListingWizard\EconomicsStepForm;
 use App\Livewire\Forms\ListingWizard\OperationStepForm;
 use App\Livewire\Forms\ListingWizard\PublishStepForm;
-use App\Livewire\Forms\LocationForm;
 use App\Livewire\Forms\OnlineProfileForm;
+use App\Livewire\LocationPickerComponent;
 use App\Models\Business;
 use App\Models\Category;
 use App\Models\Listing;
@@ -61,7 +61,7 @@ use Livewire\Component;
  * Shared with the admin (/admin/publicaciones), where the superadmin also picks the owner.
  * Orchestrates only: authorize → validate → Actions → feedback.
  */
-new class extends Component {
+new class extends LocationPickerComponent {
     public const int FIRST_STEP = 1;
 
     public const int LAST_STEP = 8;
@@ -88,8 +88,6 @@ new class extends Component {
     public OperationStepForm $operation;
 
     public BusinessForm $business;
-
-    public LocationForm $location;
 
     public OnlineProfileForm $online;
 
@@ -452,6 +450,11 @@ new class extends Component {
     public function updatedLocationProvinceId(): void
     {
         $this->location->municipality_id = null;
+    }
+
+    protected function authorizeLocationChange(): void
+    {
+        $this->requireListing();
     }
 
     public function updatedSelectedBusinessId(mixed $value): void
@@ -1070,41 +1073,7 @@ new class extends Component {
                             <flux:text>{{ __('Where the premises are. You decide how much is shown publicly.') }}</flux:text>
                         </div>
 
-                        <div class="grid gap-6 sm:grid-cols-2">
-                            <flux:select wire:model.live="location.province_id" variant="listbox" searchable :label="__('Province')" :placeholder="__('Choose a province')">
-                                @foreach ($this->provinces as $province)
-                                    <flux:select.option :value="$province->id" wire:key="province-{{ $province->id }}">{{ $province->name }}</flux:select.option>
-                                @endforeach
-                            </flux:select>
-
-                            <flux:select
-                                wire:model="location.municipality_id"
-                                variant="listbox"
-                                searchable
-                                :label="__('Municipality')"
-                                :placeholder="$this->municipalities->isEmpty() ? __('Choose a province first') : __('Choose a municipality')"
-                                :disabled="$this->municipalities->isEmpty()"
-                            >
-                                @foreach ($this->municipalities as $municipality)
-                                    <flux:select.option :value="$municipality->id" wire:key="municipality-{{ $municipality->id }}">{{ $municipality->name }}</flux:select.option>
-                                @endforeach
-                            </flux:select>
-                        </div>
-
-                        <div class="grid gap-6 sm:grid-cols-[1fr_10rem]">
-                            <flux:input wire:model="location.address_line" :label="__('Address')" :badge="__('Private')" :description="__('Shown only if you choose “Exact address”.')" maxlength="255" />
-                            <flux:input wire:model="location.postal_code" :label="__('Postal code')" :badge="__('Private')" maxlength="10" />
-                        </div>
-
-                        <flux:radio.group wire:model="location.location_visibility" :label="__('Location visibility')">
-                            @foreach (LocationVisibility::cases() as $visibility)
-                                <flux:radio :value="$visibility->value" :label="$visibility->label()" :description="$visibility->description()" />
-                            @endforeach
-                        </flux:radio.group>
-
-                        <flux:callout icon="map" variant="secondary">
-                            <flux:callout.text>{{ __('The map to place the exact point of the premises will be available soon. Until then, the public map shows the municipality area.') }}</flux:callout.text>
-                        </flux:callout>
+                        @include('partials.location-fields')
                     </div>
                 @endif
 

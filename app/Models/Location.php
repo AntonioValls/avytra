@@ -6,12 +6,12 @@ use App\Enums\GeocodingSource;
 use App\Enums\LocationVisibility;
 use App\Support\Location\Coordinates;
 use App\Support\Location\PublicPoint;
+use Carbon\CarbonImmutable;
 use Database\Factories\LocationFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Carbon;
 
 /**
  * Premises of a physical or hybrid business.
@@ -35,9 +35,9 @@ use Illuminate\Support\Carbon;
  * @property int|null $public_radius_m
  * @property GeocodingSource|null $geocoding_source
  * @property string|null $geocoding_provider
- * @property Carbon|null $geocoded_at
- * @property Carbon|null $created_at
- * @property Carbon|null $updated_at
+ * @property CarbonImmutable|null $geocoded_at
+ * @property CarbonImmutable|null $created_at
+ * @property CarbonImmutable|null $updated_at
  */
 #[Fillable([
     'is_primary',

@@ -60,12 +60,32 @@ return [
     ],
 
     'map' => [
+        // MapLibre style (docs/10, ADR-005). Any MapLibre-compatible style URL works.
         'style_url' => env('MAP_STYLE_URL', 'https://tiles.openfreemap.org/styles/liberty'),
+        // Where the picker starts before a municipality is chosen (Spain).
+        'default_centre' => ['latitude' => 40.2, 'longitude' => -3.7],
+        'zoom' => [
+            'country' => 5,
+            'municipality' => 13,
+            'exact' => 16,
+        ],
     ],
 
     'geocoding' => [
-        // "null" disables address search in forms; other drivers arrive in Phase 5.
+        // "null" disables address search in forms; "nominatim" is for development / low volume only.
         'driver' => env('GEOCODING_DRIVER', 'null'),
+        // Address searches allowed per user and hour.
+        'rate_limit_per_hour' => 30,
+        // Results are cached per normalised query.
+        'cache_days' => 30,
+        'nominatim' => [
+            'base_url' => env('NOMINATIM_BASE_URL', 'https://nominatim.openstreetmap.org'),
+            // Nominatim requires an identifying User-Agent and prefers a contact email.
+            'user_agent' => env('NOMINATIM_USER_AGENT', 'AVYTRA/1.0'),
+            'email' => env('NOMINATIM_EMAIL'),
+            'requests_per_second' => 1,
+            'timeout_seconds' => 5,
+        ],
     ],
 
     'support' => [

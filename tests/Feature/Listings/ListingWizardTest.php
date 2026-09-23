@@ -4,7 +4,9 @@ use App\Enums\BusinessType;
 use App\Enums\ContactMethod;
 use App\Enums\Disclosure;
 use App\Enums\FinancialMetric;
+use App\Enums\GeocodingSource;
 use App\Enums\ListingStatus;
+use App\Enums\LocationVisibility;
 use App\Enums\OnlineBusinessType;
 use App\Enums\OperationType;
 use App\Enums\PriceDisclosure;
@@ -348,4 +350,44 @@ test('an online business skips the premises and asks for the online profile in s
         ->assertHasNoErrors();
 
     expect($listing->business->fresh()->onlineProfile->online_business_type)->toBe(OnlineBusinessType::Saas);
+});
+
+test('step 5 stores the point placed on the map and derives the exact public location from it', function () {
+    $municipality = Municipality::factory()->withPopulation(3000)->create(['latitude' => 39.98, 'longitude' => -0.05]);
+    $listing = Listing::factory()->bare()->create();
+    actingAsOwnerOf($listing->business);
+
+    $warning = __('Without a point on the map, the location is published as “Municipality only”. Place the pin to use the visibility you chose.');
+
+    Livewire::withQueryParams(['paso' => 5])
+        ->test('pages::listings.wizard', ['listing' => $listing])
+        ->assertSee(__('Point on the map'))
+        ->assertSee('data-map="picker"', false)
+        ->set('location.province_id', $municipality->province_id)
+        ->set('location.municipality_id', $municipality->id)
+        ->assertSee('data-centre-lat="39.98"', false)
+        ->set('location.location_visibility', LocationVisibility::Exact->value)
+        ->assertSee($warning)
+        ->set('location.latitude', 39.9)
+        ->set('location.longitude', -0.06)
+        ->assertDontSee($warning)
+        ->call('next')
+        ->assertHasNoErrors()
+        ->assertSet('step', 6);
+
+    $location = $listing->business->fresh()->location;
+
+    expect($location->latitude)->toBe(39.9)
+        ->and($location->longitude)->toBe(-0.06)
+        ->and($location->geocoding_source)->toBe(GeocodingSource::ManualPin)
+        ->and($location->public_latitude)->toBe(39.9)
+        ->and($location->public_longitude)->toBe(-0.06)
+        ->and($location->public_radius_m)->toBeNull();
+
+    // Coming back to the step shows the stored point on the picker.
+    Livewire::withQueryParams(['paso' => 5])
+        ->test('pages::listings.wizard', ['listing' => $listing])
+        ->assertSet('location.latitude', 39.9)
+        ->assertSee('data-lat="39.9"', false)
+        ->assertSee(__('Remove the point'));
 });

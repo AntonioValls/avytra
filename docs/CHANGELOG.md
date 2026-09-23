@@ -2,6 +2,25 @@
 
 Formato: una sección por fase cerrada, con fecha. Cambios de documentación relevantes también se anotan.
 
+## [Phase 5] — 2026-09-23 — Ubicación y mapas
+
+### Añadido
+- Dependencia npm `maplibre-gl` ^6.11 (ADR-005, aprobada por el propietario al iniciar la fase). Entrada Vite `resources/js/map.js` (incluida solo por los componentes de mapa) y módulo `resources/js/map/` (`support.js` con comprobación WebGL2 y fallback, `tokens.js` con Ink y Transfer Blue desde las variables CSS del tema, `geometry.js`, `layers.js`, `listing.js`, `explore.js`, `picker.js`). El worker de MapLibre v6 se importa con `?worker&url` y `setWorkerUrl()`: Vite lo empaqueta en el build y lo sirve en desarrollo, sin copias manuales.
+- Componentes Blade `x-map.listing` (ficha y vista previa del wizard; pin para `exact`, círculo para `approximate`/`city_only`, nada para `hidden`; fallback con enlace a OpenStreetMap sobre coordenadas públicas), `x-map.explore` (mapa opcional de explorar con los puntos públicos de la página actual, popups construidos con nodos DOM) y `x-map.picker` (mapa con pin arrastrable o por clic, centrado en el municipio elegido, coordenadas privadas en inputs ocultos con `wire:model.live`, botón "Quitar el punto"). Todos con un `x-data` mínimo que emite `avytra:map-mount|unmount` para montarse y destruirse en los re-renders de Livewire, y `MutationObserver` sobre sus `data-*`.
+- Explorar: propiedad `showMap` (`?mapa=true`), acción `toggleMap`, computed `mapPoints`, botón "Ver mapa / Ocultar mapa".
+- `App\Livewire\LocationPickerComponent` (clase base de `pages::businesses.form` y `pages::listings.wizard`): hooks `updatedLocationLatitude/Longitude` → `manual_pin`, `clearLocationPoint`, `searchAddress` (limitador `geocode` por usuario, toasts), computed `municipalityCentre` y `geocoderAvailable`. Parcial `partials/location-fields` compartido (provincia, municipio, dirección, picker, visibilidad y callout "Sin punto en el mapa…").
+- `LocationForm`: `geocoding_source`, `geocoding_provider`, `hasPoint()`, `willFallBackToMunicipality()`, `markManualPin()`, `clearPoint()`, `validateForAddressSearch()`, `geocodeAddress()`.
+- Geocodificación: `App\Services\Geocoding\{Geocoder (con isAvailable()), GeocodingResult, NullGeocoder, NominatimGeocoder}`, excepción `App\Exceptions\GeocodingUnavailable`, binding en `AppServiceProvider` por `avytra.geocoding.driver`; Nominatim con `User-Agent`/`email` configurables, 1 petición/segundo mediante `RateLimiter` y caché de consultas normalizadas (también sin resultado) durante 30 días. Limitador nombrado `geocode`.
+- `PublicListingPresenter::mapPoint()`; `SaveBusinessLocation` fija o limpia `geocoding_provider`/`geocoded_at` según el origen del punto.
+- Config `avytra.map.{default_centre, zoom.{country, municipality, exact}}` y `avytra.geocoding.{rate_limit_per_hour, cache_days, nominatim.{base_url, user_agent, email, requests_per_second, timeout_seconds}}`; `.env.example` con `NOMINATIM_BASE_URL`, `NOMINATIM_USER_AGENT`, `NOMINATIM_EMAIL`.
+- Tests: `Public/ListingMapTest` (HTML del mapa por visibilidad, nunca coordenadas privadas, mapa de explorar solo con los puntos públicos de la página), `Geocoding/NominatimGeocoderTest` (binding por driver, cabeceras y parámetros, caché, límite por segundo, fallo del proveedor); ampliados `Businesses/BusinessFormTest` (pin manual y derivación, quitar punto, búsqueda de dirección con driver null y con uno falso) y `Listings/ListingWizardTest` (paso 5 con pin exacto).
+- 25 cadenas nuevas en `lang/es.json`.
+
+### Cambiado
+- El formulario de empresa y el paso 5 del wizard sustituyen el aviso "el mapa llegará pronto" por el picker real y comparten el parcial de ubicación; `location.municipality_id` y `location.location_visibility` pasan a `wire:model.live` para recentrar el mapa y mostrar el aviso de visibilidad.
+- `Location` declara sus fechas como `CarbonImmutable` (coherente con `Date::use`).
+- Documentación: docs 08 y 10 con notas de implementación, ADR-005 con el resultado del worker, `CLAUDE.md` (dependencia aprobada), STATUS.
+
 ## [Phase 4] — 2026-09-22 — Marketplace público
 
 ### Añadido

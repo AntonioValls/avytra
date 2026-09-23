@@ -52,6 +52,7 @@ class SaveBusinessLocation
             $location->fill(Arr::only($attributes, self::ACCEPTED));
             $location->business()->associate($business);
             $location->geocoding_source = $this->resolveSource($location);
+            $this->syncGeocodingTrace($location);
 
             // Save first so a new location has an id to seed the deterministic offset with.
             $location->save();
@@ -86,5 +87,22 @@ class SaveBusinessLocation
         }
 
         return $location->geocoding_source;
+    }
+
+    /**
+     * Provider and timestamp only make sense for geocoded points; a hand-placed pin clears them.
+     */
+    private function syncGeocodingTrace(Location $location): void
+    {
+        if ($location->geocoding_source !== GeocodingSource::Geocoder) {
+            $location->geocoding_provider = null;
+            $location->geocoded_at = null;
+
+            return;
+        }
+
+        if ($location->geocoded_at === null || $location->isDirty(['latitude', 'longitude'])) {
+            $location->geocoded_at = now();
+        }
     }
 }

@@ -189,7 +189,8 @@
             @if ($listing->locationExplanation())
                 <flux:text size="sm" class="text-slate">{{ $listing->locationExplanation() }}</flux:text>
             @endif
-            {{-- The map (Phase 5) will read only the derived public point; the address never appears unless "exact". --}}
         </div>
+        {{-- The map reads only the derived public point (docs/10); nothing is rendered for "hidden". --}}
+        <x-map.listing :listing="$listing" />
     </section>
 @endif

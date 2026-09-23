@@ -66,6 +66,8 @@ Fuera del MVP: facturación, antigüedad, negociable, radio geográfico, subsect
 
 Fuera del MVP como pestaña completa. Phase 5 añade un mapa opcional en explorar (toggle "Ver mapa") que muestra las publicaciones **con ubicación pública** de la página actual, con círculos para aproximadas. Ver [10-location-and-maps.md](10-location-and-maps.md).
 
+Implementación (Phase 5): botón "Ver mapa / Ocultar mapa" junto al orden (solo con resultados), estado `showMap` en la URL como `?mapa=true`, componente `x-map.explore` sobre la rejilla con los `mapPoint()` de las tarjetas de la página; el mapa se reconstruye con cada cambio de página o filtro. Si ninguna publicación de la página tiene ubicación pública, el bloque lo dice en texto.
+
 Implementación (Phase 4): un único componente `pages::public.listings.index` sirve `/empresas`, `/empresas/categoria/{slug}`, `/empresas/provincia/{slug}` y `/negocios-online`; la ruta fija un filtro (`category`, `province` u `online=true` como valor por defecto) y el componente ajusta título, introducción, canonical y `noindex` cuando la página fija está vacía. Parámetros de URL: `q`, `sector` (slug), `tipo` (`fisico`/`online`/`hibrido`), `operacion` (valor del enum `OperationType`), `provincia` (slug), `precio_min`, `precio_max`, `orden` (`recientes`, `confirmadas`, `precio_asc`, `precio_desc`). El filtro de precio compara con el precio exacto o con el extremo del rango que puede satisfacerlo y deja fuera las publicaciones "a consultar"; al ordenar por precio, las que lo tienen van primero. Los recuentos por sector/provincia del footer y la home salen de `App\Support\Listings\MarketplaceAggregates` (caché de arrays planos, 15 min).
 
 ## Tarjeta de publicación
@@ -114,7 +116,7 @@ Estructura:
 
 Mismo layout con banner "Esta empresa ya ha cambiado de manos" y sin bloque de contacto. Se mantiene pública `sold_visible_days` (configurable, 30 por defecto) para transmitir que la plataforma funciona; después, `noindex` y fuera de listados.
 
-Implementación (Phase 4): `ListingController@show` resuelve el slug (con `listing_slug_redirects` → 301), responde 410 a archivadas y borradas, 404 a no públicas (200 con banner para propietario y superadmin) y 200 con `noindex` a vendidas antiguas. La vista recibe solo el presentador, el parcial `public/listings/partials/content` (compartido con la vista previa del paso 8 del wizard) y dos islas Livewire: `public.contact-box` (revelación con `RateLimiter` `contact-reveal`, valores nunca en el estado del componente) y `public.report-listing`. Mapa e imágenes reales llegan en Phases 5 y 6; el lightbox Alpine queda preparado con la lista de imágenes vacía. Barra inferior fija "Contactar" en móvil.
+Implementación (Phase 4): `ListingController@show` resuelve el slug (con `listing_slug_redirects` → 301), responde 410 a archivadas y borradas, 404 a no públicas (200 con banner para propietario y superadmin) y 200 con `noindex` a vendidas antiguas. La vista recibe solo el presentador, el parcial `public/listings/partials/content` (compartido con la vista previa del paso 8 del wizard) y dos islas Livewire: `public.contact-box` (revelación con `RateLimiter` `contact-reveal`, valores nunca en el estado del componente) y `public.report-listing`. El mapa de la ubicación (`x-map.listing`, Phase 5) se renderiza dentro del parcial según la visibilidad pública, también en la vista previa del wizard; las imágenes reales llegan en Phase 6 y el lightbox Alpine queda preparado con la lista de imágenes vacía. Barra inferior fija "Contactar" en móvil.
 
 ## Reportar publicación
 

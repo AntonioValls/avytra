@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\Services\Geocoding\Geocoder;
+use App\Services\Geocoding\NominatimGeocoder;
+use App\Services\Geocoding\NullGeocoder;
 use App\Support\Location\PublicPointDeriver;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -33,6 +36,23 @@ class AppServiceProvider extends ServiceProvider
                 cityRadiusByPopulation: $location['city_only_radius_m']['by_population'],
                 cityMaxRadiusM: $location['city_only_radius_m']['max'],
             );
+        });
+
+        $this->app->bind(Geocoder::class, function (): Geocoder {
+            /** @var array{driver: string, cache_days: int, nominatim: array{base_url: string, user_agent: string, email: string|null, requests_per_second: int, timeout_seconds: int}} $geocoding */
+            $geocoding = config('avytra.geocoding');
+
+            return match ($geocoding['driver']) {
+                'nominatim' => new NominatimGeocoder(
+                    baseUrl: $geocoding['nominatim']['base_url'],
+                    userAgent: $geocoding['nominatim']['user_agent'],
+                    email: $geocoding['nominatim']['email'],
+                    requestsPerSecond: $geocoding['nominatim']['requests_per_second'],
+                    timeoutSeconds: $geocoding['nominatim']['timeout_seconds'],
+                    cacheDays: $geocoding['cache_days'],
+                ),
+                default => new NullGeocoder,
+            };
         });
     }
 
@@ -90,6 +110,11 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('report', function (Request $request) {
             return Limit::perHour(config('avytra.reports.rate_limit_per_hour'))->by($request->ip());
+        });
+
+        // Address search in the location picker (ManagesLocationPicker), per authenticated user.
+        RateLimiter::for('geocode', function (Request $request) {
+            return Limit::perHour(config('avytra.geocoding.rate_limit_per_hour'))->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip()));
         });
     }
 }

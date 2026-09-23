@@ -277,6 +277,30 @@ final class PublicListingPresenter
     }
 
     /**
+     * What the explore map receives for this listing: the derived public point (never the
+     * private coordinates), its radius, title, URL and location text for the popup.
+     *
+     * @return array{lat: float, lng: float, radius: int|null, title: string, url: string|null, text: string}|null
+     */
+    public function mapPoint(): ?array
+    {
+        $point = $this->publicPoint();
+
+        if ($point === null || $point->latitude === null || $point->longitude === null) {
+            return null;
+        }
+
+        return [
+            'lat' => $point->latitude,
+            'lng' => $point->longitude,
+            'radius' => $point->radiusM,
+            'title' => $this->title(),
+            'url' => $this->url(),
+            'text' => $this->locationText(),
+        ];
+    }
+
+    /**
      * "Castellón de la Plana, Castellón", "Provincia de Castellón" or "Online".
      */
     public function locationText(): string

@@ -72,7 +72,7 @@ Sin geocodificación obligatoria; el vendedor coloca el pin. Sal configurable pa
 
 ## ADR-005 — Mapa con MapLibre GL JS y estilo de OpenFreeMap configurable
 
-Status: Accepted (implementación en Phase 5, requiere aprobación de la dependencia npm)
+Status: Accepted — dependencia `maplibre-gl` ^6.11 aprobada e implementada en Phase 5 (2026-09-23)
 Date: 2026-09-21
 
 ### Context
@@ -83,6 +83,8 @@ MapLibre GL JS; estilo por defecto OpenFreeMap `liberty` en `config('avytra.map.
 
 ### Consequences
 Cambio de proveedor (MapTiler, servidor propio) por configuración. Riesgo aceptado: OpenFreeMap sin SLA. Verificar en Phase 5 la resolución del worker con Vite 8; prohibido vendorizar a mano.
+
+Resultado (Phase 5): el worker de MapLibre v6 se resuelve importándolo con `?worker&url` y `setWorkerUrl()`, de modo que Vite lo empaqueta en el build y lo sirve en desarrollo sin copias manuales (docs/10). El mapa pesa ~290 KB gz y solo se carga en las páginas que lo usan (entrada Vite separada).
 
 ---
 

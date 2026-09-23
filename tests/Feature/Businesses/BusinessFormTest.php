@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\BusinessType;
+use App\Enums\GeocodingSource;
 use App\Enums\LocationVisibility;
 use App\Enums\OnlineBusinessType;
 use App\Models\Business;
@@ -10,6 +11,8 @@ use App\Models\Municipality;
 use App\Models\OnlineProfile;
 use App\Models\Province;
 use App\Models\User;
+use App\Services\Geocoding\Geocoder;
+use App\Services\Geocoding\GeocodingResult;
 use Livewire\Livewire;
 
 test('the create page renders for a registered user', function () {
@@ -256,4 +259,115 @@ test('another user cannot open or save somebody else\'s business', function () {
 
 test('guests are redirected to the login page', function () {
     $this->get(route('businesses.create'))->assertRedirect(route('login'));
+});
+
+test('the map picker stores a hand-placed point and derives the approximate public point from it', function () {
+    $user = User::factory()->create();
+    $sector = Category::factory()->create();
+    $municipality = Municipality::factory()->withPopulation(3000)->create(['latitude' => 39.98, 'longitude' => -0.05]);
+
+    $this->actingAs($user);
+
+    Livewire::test('pages::businesses.form')
+        ->set('form.business_type', BusinessType::Physical->value)
+        ->set('form.category_id', $sector->id)
+        ->set('form.name', 'Bar Pepe')
+        ->set('form.description', 'Bar de barrio con terraza.')
+        ->set('location.province_id', $municipality->province_id)
+        ->set('location.municipality_id', $municipality->id)
+        ->set('location.location_visibility', LocationVisibility::Approximate->value)
+        ->assertSee(__('Point on the map'))
+        ->assertSee('data-map="picker"', false)
+        ->assertSee('data-centre-lat="39.98"', false)
+        ->set('location.latitude', 39.888888)
+        ->set('location.longitude', -0.077777)
+        ->assertSet('location.geocoding_source', GeocodingSource::ManualPin->value)
+        ->assertSee('data-lat="39.888888"', false)
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $location = Business::sole()->location;
+
+    expect($location->latitude)->toBe(39.888888)
+        ->and($location->longitude)->toBe(-0.077777)
+        ->and($location->geocoding_source)->toBe(GeocodingSource::ManualPin)
+        ->and($location->geocoding_provider)->toBeNull()
+        ->and($location->public_radius_m)->toBe(700)
+        ->and($location->public_latitude)->not->toBe(39.888888)
+        ->and(abs($location->public_latitude - 39.888888))->toBeLessThan(0.01)
+        ->and($location->effectiveVisibility())->toBe(LocationVisibility::Approximate);
+});
+
+test('removing the point falls back to the municipality and warns that the chosen visibility needs a pin', function () {
+    $business = Business::factory()->physical()->withLocation(Location::factory()->approximate()->withCoordinates(39.888888, -0.077777))->create();
+    actingAsOwnerOf($business);
+
+    $warning = __('Without a point on the map, the location is published as “Municipality only”. Place the pin to use the visibility you chose.');
+
+    Livewire::test('pages::businesses.form', ['business' => $business])
+        ->assertSet('location.latitude', 39.888888)
+        ->assertSee(__('Remove the point'))
+        ->assertDontSee($warning)
+        ->call('clearLocationPoint')
+        ->assertSet('location.latitude', null)
+        ->assertSet('location.longitude', null)
+        ->assertSet('location.geocoding_source', null)
+        ->assertSee($warning)
+        ->assertDontSee(__('Remove the point'))
+        ->call('save')
+        ->assertHasNoErrors();
+
+    $location = $business->fresh()->location;
+
+    expect($location->latitude)->toBeNull()
+        ->and($location->geocoding_source)->toBe(GeocodingSource::MunicipalityCentroid)
+        ->and($location->effectiveVisibility())->toBe(LocationVisibility::CityOnly);
+});
+
+test('the address search is hidden with the null geocoder and fills the point with a real one', function () {
+    $user = User::factory()->create();
+    $municipality = Municipality::factory()->create(['name' => 'Borriana']);
+    $this->actingAs($user);
+
+    Livewire::test('pages::businesses.form')
+        ->set('form.business_type', BusinessType::Physical->value)
+        ->assertDontSee(__('Find the address on the map'))
+        ->call('searchAddress')
+        ->assertSet('location.latitude', null);
+
+    $this->app->bind(Geocoder::class, fn () => new class implements Geocoder
+    {
+        public string $lastQuery = '';
+
+        public function isAvailable(): bool
+        {
+            return true;
+        }
+
+        public function geocode(string $query, ?string $countryCode = 'ES'): ?GeocodingResult
+        {
+            return str_contains($query, 'Calle Mayor 1')
+                ? new GeocodingResult(39.5, -0.4, 'Calle Mayor 1, Borriana', '12530', 'fake', 0.9)
+                : null;
+        }
+    });
+
+    Livewire::test('pages::businesses.form')
+        ->set('form.business_type', BusinessType::Physical->value)
+        ->assertSee(__('Find the address on the map'))
+        ->call('searchAddress')
+        ->assertHasErrors(['location.municipality_id' => 'required', 'location.address_line' => 'required'])
+        ->set('location.province_id', $municipality->province_id)
+        ->set('location.municipality_id', $municipality->id)
+        ->set('location.address_line', 'Calle Mayor 1')
+        ->call('searchAddress')
+        ->assertHasNoErrors()
+        ->assertSet('location.latitude', 39.5)
+        ->assertSet('location.longitude', -0.4)
+        ->assertSet('location.geocoding_source', GeocodingSource::Geocoder->value)
+        ->assertSet('location.geocoding_provider', 'fake')
+        ->assertSet('location.postal_code', '12530')
+        ->set('location.address_line', 'Calle Inexistente 7')
+        ->call('searchAddress')
+        ->assertSet('location.latitude', 39.5);
 });

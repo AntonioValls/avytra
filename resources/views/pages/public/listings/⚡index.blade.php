@@ -65,6 +65,9 @@ new class extends Component {
     #[Url(as: 'orden', except: 'recientes')]
     public string $sort = 'recientes';
 
+    #[Url(as: 'mapa', except: false)]
+    public bool $showMap = false;
+
     public function mount(?Category $category = null, ?Province $province = null, bool $online = false): void
     {
         if ($category !== null) {
@@ -144,6 +147,26 @@ new class extends Component {
     public function cards(): SupportCollection
     {
         return $this->results->getCollection()->map(fn (Listing $listing): PublicListingPresenter => PublicListingPresenter::for($listing));
+    }
+
+    /**
+     * Public points of the current page only (docs/10): never all listings, never private coordinates.
+     *
+     * @return list<array{lat: float, lng: float, radius: int|null, title: string, url: string|null, text: string}>
+     */
+    #[Computed]
+    public function mapPoints(): array
+    {
+        return $this->cards
+            ->map(fn (PublicListingPresenter $card): ?array => $card->mapPoint())
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    public function toggleMap(): void
+    {
+        $this->showMap = ! $this->showMap;
     }
 
     /**
@@ -336,6 +359,12 @@ new class extends Component {
                         </flux:button>
                     </flux:modal.trigger>
 
+                    @if ($this->cards->isNotEmpty())
+                        <flux:button wire:click="toggleMap" :icon="$showMap ? 'list-bullet' : 'map'" :aria-pressed="$showMap ? 'true' : 'false'">
+                            {{ $showMap ? __('Hide map') : __('Show map') }}
+                        </flux:button>
+                    @endif
+
                     <flux:select variant="listbox" wire:model.live="sort" class="w-52" :aria-label="__('Sort by')">
                         <flux:select.option value="recientes">{{ __('Most recent') }}</flux:select.option>
                         <flux:select.option value="confirmadas">{{ __('Recently confirmed') }}</flux:select.option>
@@ -353,6 +382,10 @@ new class extends Component {
                     <flux:button variant="primary" :href="route('publish.landing')" wire:navigate icon-trailing="arrow-right">{{ __('Have a business? Publish it for free') }}</flux:button>
                 </x-empty-state>
             @else
+                @if ($showMap)
+                    <x-map.explore :points="$this->mapPoints" wire:key="explore-map" />
+                @endif
+
                 <div class="grid gap-6 sm:grid-cols-2 xl:grid-cols-3" wire:loading.class="opacity-60">
                     @foreach ($this->cards as $card)
                         <x-listing-card :listing="$card" wire:key="card-{{ $card->id() }}" />

@@ -50,7 +50,7 @@ Orden de preferencia en el wizard (paso 5):
 1. Selecciona provincia y municipio → el mapa se centra en el centroide del municipio.
 2. Opcionalmente escribe dirección y código postal (privados).
 3. **Arrastra el pin** o hace clic en el mapa para colocar el punto real (`geocoding_source = manual_pin`).
-4. Si no coloca pin, se usa el centroide del municipio (`geocoding_source = municipality_centroid`) y se fuerza `city_only` como visibilidad efectiva (no tiene sentido "aproximada" sin punto real). La UI lo explica. Implementado en Phase 2 (`SaveBusinessLocation` + `PublicPointDeriver`, `Location::effectiveVisibility()`); hasta Phase 5 el formulario no ofrece pin, así que todas las ubicaciones se publican como `city_only`. El radio de `city_only` sale de `config('avytra.location.city_only_radius_m')` por tramos de población (< 5.000 → 1,5 km; < 20.000 → 2 km; < 100.000 → 3 km; < 500.000 → 4 km; resto 5 km; sin dato 3 km).
+4. Si no coloca pin, se usa el centroide del municipio (`geocoding_source = municipality_centroid`) y se fuerza `city_only` como visibilidad efectiva (no tiene sentido "aproximada" sin punto real). La UI lo explica (callout "Sin punto en el mapa, la ubicación se publica como «Solo municipio»" mientras la visibilidad elegida sea `exact` o `approximate` sin pin). Implementado en Phase 2 (`SaveBusinessLocation` + `PublicPointDeriver`, `Location::effectiveVisibility()`) y completado en Phase 5 con el picker `x-map.picker` (parcial `partials/location-fields`, compartido por el formulario de empresa y el paso 5 del wizard a través de la clase base `App\Livewire\LocationPickerComponent`): el mapa escribe `latitude`/`longitude` en dos inputs ocultos con `wire:model.live`, los hooks `updatedLocationLatitude/Longitude` marcan `manual_pin`, y "Quitar el punto" (`clearLocationPoint`) vuelve al centroide. El radio de `city_only` sale de `config('avytra.location.city_only_radius_m')` por tramos de población (< 5.000 → 1,5 km; < 20.000 → 2 km; < 100.000 → 3 km; < 500.000 → 4 km; resto 5 km; sin dato 3 km).
 5. Botón "Buscar dirección en el mapa" (geocodificación) — **mejora opcional** dentro de Phase 5, detrás de la interfaz `Geocoder`; si el proveedor no está configurado, el botón no aparece.
 
 Esto hace que el MVP no dependa de ningún geocodificador.
@@ -76,10 +76,17 @@ Se **reutiliza conceptualmente** de ParkingParaCamiones (ver [22-parkingparacami
 
 Se **corrige** respecto a ParkingParaCamiones:
 
-- Un único módulo `resources/js/map/` con dos funciones públicas (`mountListingMap(el)`, `mountExploreMap(el)`) y un componente Blade `<x-map.listing :location="..." />` que emite el HTML y el fallback.
+- Un único módulo `resources/js/map/` con tres montadores (`mountListingMap`, `mountExploreMap`, `mountLocationPicker`) y tres componentes Blade (`x-map.listing`, `x-map.explore`, `x-map.picker`) que emiten el HTML y el fallback.
 - Colores y estilo desde config/tokens, no literales en JS.
 - El problema del worker de MapLibre con Vite se verifica en Phase 5 con la versión actual de MapLibre y Vite 8; si persiste, se resuelve con un paso de build (copia con checksum) en lugar de archivos vendorizados a mano.
 - Ningún endpoint público devuelve todas las coordenadas: el mapa de explorar solo recibe los puntos de la página actual, y solo `public_*`.
+
+Implementación (Phase 5, `maplibre-gl` 6.x aprobado el 2026-09-23):
+
+- Entrada Vite separada `resources/js/map.js` (solo la incluye, vía `@vite`, cada componente de mapa, como hace `passkeys.js`): importa MapLibre y su CSS, y el worker con `import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'` + `setWorkerUrl(workerUrl)`. MapLibre v6 resuelve el worker relativo a `import.meta.url`, que Vite reescribe; con `?worker&url` es Vite quien lo empaqueta (`public/build/assets/maplibre-gl-worker-*.js`) y lo sirve en desarrollo (origen distinto, MapLibre lo carga mediante un blob `import`). **Sin archivos vendorizados.** Verificado en navegador en build y en `npm run dev`.
+- Cada componente es un contenedor con `data-map="listing|explore|picker"` y atributos `data-*` renderizados por Blade, un canvas `wire:ignore` (oculto hasta que el mapa se crea) y un bloque `[data-map-fallback]` visible por defecto (sirve también sin JavaScript). `resources/js/map/support.js` comprueba WebGL2 y muestra el fallback si falla; `tokens.js` lee Ink y Transfer Blue de las variables CSS del tema; `geometry.js` genera el polígono del círculo y sus límites; `layers.js` pinta el área (relleno 15 %, borde 60 %).
+- Montaje desacoplado de Livewire: el módulo monta todos los `[data-map]` al cargar y en `livewire:navigated`, desmonta en `livewire:navigating`, y cada contenedor lleva un `x-data` mínimo cuyo `init`/`destroy` emite `avytra:map-mount` / `avytra:map-unmount`, de modo que los mapas que aparecen o desaparecen en un re-render (toggle de explorar, cambio de paso en el wizard) se crean y destruyen (`map.remove()`) sin fugas de contextos WebGL. Los cambios de datos tras un re-render (puntos de explorar, pin o municipio del picker) llegan como cambios de atributos `data-*` que cada montador observa con `MutationObserver`.
+- Configuración en `config('avytra.map')`: `style_url`, `default_centre` (España), `zoom.{country, municipality, exact}`.
 
 ### Render según visibilidad
 
@@ -89,6 +96,8 @@ Se **corrige** respecto a ParkingParaCamiones:
 
 Fallback sin WebGL: bloque con el texto de ubicación y enlace "Ver zona en OpenStreetMap" (solo para `exact`; para aproximadas, enlace al municipio).
 
+Implementación (Phase 5): `x-map.listing` recibe el `PublicListingPresenter` y usa solo `publicPoint()`: `data-lat/lng` públicos, `data-radius` vacío para `exact` (marcador Ink con popup de la dirección pública) y con metros para el resto (polígono circular ajustado con `fitBounds`); para `hidden` no emite nada. El texto explicativo lo aporta el bloque de ubicación de la ficha (`locationExplanation()`), no el mapa. El enlace del fallback apunta a OpenStreetMap con las coordenadas públicas (`?mlat/mlon` solo para `exact`). El mapa de explorar (`x-map.explore`, toggle `mapa` en la URL) recibe `PublicListingPresenter::mapPoint()` de las tarjetas de la página actual: marcador para exactas, círculo para aproximadas, popup con título y enlace construido con nodos DOM (nunca HTML de vendedor).
+
 ## Geocodificación (opcional, abstraída)
 
 ```php
@@ -96,7 +105,10 @@ namespace App\Services\Geocoding;
 
 interface Geocoder
 {
-    /** @return GeocodingResult|null */
+    /** False con el driver null: los formularios ocultan "Buscar la dirección en el mapa". */
+    public function isAvailable(): bool;
+
+    /** @throws GeocodingUnavailable si el proveedor no responde o alcanza su límite */
     public function geocode(string $query, ?string $countryCode = 'ES'): ?GeocodingResult;
 }
 
@@ -117,6 +129,8 @@ final readonly class GeocodingResult
 - Selección por `config('avytra.geocoding.driver')`.
 - Resultado siempre revisable por el usuario en el mapa antes de guardar.
 - No se geocodifica en masa ni en background sin consentimiento del usuario.
+
+Implementación (Phase 5): `App\Services\Geocoding\{Geocoder, GeocodingResult, NullGeocoder, NominatimGeocoder}`, enlazados en `AppServiceProvider` según `config('avytra.geocoding.driver')` (`null` por defecto). `NominatimGeocoder` envía `User-Agent` y `email` de `config('avytra.geocoding.nominatim')`, limita a `requests_per_second` con `RateLimiter` (clave `geocoding:nominatim`; si se supera lanza `App\Exceptions\GeocodingUnavailable` en vez de esperar) y cachea cada consulta normalizada, también las sin resultado, durante `cache_days`. El botón "Buscar la dirección en el mapa" (`LocationPickerComponent::searchAddress`) solo se renderiza si `isAvailable()`, exige municipio y dirección, aplica el limitador `geocode` por usuario (`rate_limit_per_hour`), rellena `latitude`/`longitude` con `geocoding_source = geocoder` y el proveedor, completa el código postal si estaba vacío y avisa con un toast; `SaveBusinessLocation` fija `geocoded_at` y borra proveedor y fecha si el punto pasa a ser manual. Un pin arrastrado después de geocodificar vuelve a `manual_pin`.
 
 ## Filtros geográficos
 
