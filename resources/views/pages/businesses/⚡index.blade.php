@@ -31,7 +31,7 @@ new class extends Component {
     {
         return Business::query()
             ->ownedBy(Auth::user())
-            ->with(['category', 'subcategory', 'location.province', 'location.municipality', 'openListing'])
+            ->with(['category', 'subcategory', 'location.province', 'location.municipality', 'openListing', 'media'])
             ->latest('updated_at')
             ->orderByDesc('id')
             ->paginate(config('avytra.pagination.panel_cards'));
@@ -65,6 +65,14 @@ new class extends Component {
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             @foreach ($this->businesses as $business)
                 <flux:card wire:key="business-{{ $business->id }}" class="flex flex-col gap-4">
+                    @php $cover = $business->cover() ?? $business->galleryImages()->first(); @endphp
+                    <div class="-mx-2 -mt-2 flex aspect-[16/7] items-center justify-center overflow-hidden rounded-md bg-mist dark:bg-zinc-800">
+                        @if ($cover && $cover->hasGeneratedConversion('card'))
+                            <img src="{{ $cover->getFullUrl('card') }}" alt="{{ $cover->getCustomProperty('alt', '') }}" width="{{ config('avytra.media.conversions.card.width') }}" height="{{ config('avytra.media.conversions.card.height') }}" loading="lazy" class="size-full object-cover" />
+                        @else
+                            <x-app-logo-icon class="size-10 text-zinc-300 dark:text-zinc-600" />
+                        @endif
+                    </div>
                     <div class="flex items-start justify-between gap-3">
                         <div class="flex min-w-0 flex-col gap-1">
                             <flux:heading size="lg" class="truncate">{{ $business->name }}</flux:heading>

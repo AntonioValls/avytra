@@ -33,7 +33,7 @@
                 __('Figures') => __('Price and figures, each with its own disclosure: exact, range, on request or hidden.'),
                 __('Location') => __('Province and municipality. The exact address is never shown unless you want it.'),
                 __('Contact') => __('The channels you choose. Nothing from your account is published.'),
-                __('Images') => __('Cover and gallery (coming soon).'),
+                __('Images') => __('Cover, gallery and logo, with the order you choose.'),
                 __('Publish') => __('Review and publish. Visible immediately.'),
             ] as $step => $text)
                 <li class="flex flex-col gap-2 rounded-md border border-zinc-200 p-5">

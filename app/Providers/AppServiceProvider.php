@@ -112,7 +112,12 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perHour(config('avytra.reports.rate_limit_per_hour'))->by($request->ip());
         });
 
-        // Address search in the location picker (ManagesLocationPicker), per authenticated user.
+        // Image uploads in the business images component, per authenticated user (docs/16).
+        RateLimiter::for('image-upload', function (Request $request) {
+            return Limit::perHour(config('avytra.media.upload_rate_limit_per_hour'))->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip()));
+        });
+
+        // Address search in the location picker (LocationPickerComponent), per authenticated user.
         RateLimiter::for('geocode', function (Request $request) {
             return Limit::perHour(config('avytra.geocoding.rate_limit_per_hour'))->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip()));
         });

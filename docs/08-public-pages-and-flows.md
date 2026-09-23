@@ -84,7 +84,7 @@ Componente Blade puro (`<x-listing-card :listing="$listing" />`), no Livewire. D
 
 Toda la tarjeta es un enlace con `wire:navigate`.
 
-Implementación (Phase 4): `x-listing-card` recibe el `PublicListingPresenter`, nunca el modelo. Portada con placeholder de marca hasta Phase 6. `x-price` y `x-freshness-badge` son puramente presentacionales (texto ya formateado por `PriceFormatter`/el presentador).
+Implementación (Phase 4): `x-listing-card` recibe el `PublicListingPresenter`, nunca el modelo. Portada con placeholder de marca cuando la empresa no tiene imágenes. Desde Phase 6 la tarjeta pinta `coverImage()` del presentador (conversiones `thumb`/`card` en `srcset`, `width`/`height` fijos y `loading="lazy"`, salvo `eager`). `x-price` y `x-freshness-badge` son puramente presentacionales (texto ya formateado por `PriceFormatter`/el presentador).
 
 ## Ficha de publicación (`/empresas/{slug}`)
 
@@ -116,7 +116,7 @@ Estructura:
 
 Mismo layout con banner "Esta empresa ya ha cambiado de manos" y sin bloque de contacto. Se mantiene pública `sold_visible_days` (configurable, 30 por defecto) para transmitir que la plataforma funciona; después, `noindex` y fuera de listados.
 
-Implementación (Phase 4): `ListingController@show` resuelve el slug (con `listing_slug_redirects` → 301), responde 410 a archivadas y borradas, 404 a no públicas (200 con banner para propietario y superadmin) y 200 con `noindex` a vendidas antiguas. La vista recibe solo el presentador, el parcial `public/listings/partials/content` (compartido con la vista previa del paso 8 del wizard) y dos islas Livewire: `public.contact-box` (revelación con `RateLimiter` `contact-reveal`, valores nunca en el estado del componente) y `public.report-listing`. El mapa de la ubicación (`x-map.listing`, Phase 5) se renderiza dentro del parcial según la visibilidad pública, también en la vista previa del wizard; las imágenes reales llegan en Phase 6 y el lightbox Alpine queda preparado con la lista de imágenes vacía. Barra inferior fija "Contactar" en móvil.
+Implementación (Phase 4): `ListingController@show` resuelve el slug (con `listing_slug_redirects` → 301), responde 410 a archivadas y borradas, 404 a no públicas (200 con banner para propietario y superadmin) y 200 con `noindex` a vendidas antiguas. La vista recibe solo el presentador, el parcial `public/listings/partials/content` (compartido con la vista previa del paso 8 del wizard) y dos islas Livewire: `public.contact-box` (revelación con `RateLimiter` `contact-reveal`, valores nunca en el estado del componente) y `public.report-listing`. El mapa de la ubicación (`x-map.listing`, Phase 5) se renderiza dentro del parcial según la visibilidad pública, también en la vista previa del wizard; Desde Phase 6 la galería es real: `galleryImages()` (portada primero, luego la galería en su orden) alimenta la portada grande (`detail`, `fetchpriority="high"`), las miniaturas (`thumb`) y el lightbox Alpine (flechas y teclado); el logo aparece en la tarjeta "Sobre la empresa". Solo llegan al HTML URLs de conversiones WebP, nunca el original. Barra inferior fija "Contactar" en móvil.
 
 ## Reportar publicación
 

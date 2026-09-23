@@ -20,6 +20,7 @@ use App\Models\Listing;
 use App\Models\ListingFinancialMetric;
 use App\Models\Location;
 use App\Support\Location\PublicPoint;
+use App\Support\Media\PublicImage;
 use App\Support\Seo\PageMeta;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Str;
@@ -46,6 +47,7 @@ final class PublicListingPresenter
         'business.location.province',
         'business.location.municipality',
         'business.onlineProfile',
+        'business.media',
         'operationTypes',
         'financialMetrics',
     ];
@@ -345,6 +347,61 @@ final class PublicListingPresenter
     public function isHybrid(): bool
     {
         return $this->businessType() === BusinessType::Hybrid;
+    }
+
+    /* -------------------------------------------------------------- images */
+
+    /**
+     * The cover, or the first gallery image when no cover was uploaded. Null while the
+     * conversions are pending or when there are no images: views show the brand placeholder.
+     */
+    public function coverImage(): ?PublicImage
+    {
+        $business = $this->listing->business;
+        $media = $business->cover() ?? $business->galleryImages()->first();
+
+        return $media === null ? null : PublicImage::fromMedia($media, 'thumb', 'card', 'detail');
+    }
+
+    /**
+     * Every image for the lightbox: the cover first, then the gallery in its order.
+     * Only images whose conversions exist; the original file is never exposed.
+     *
+     * @return list<PublicImage>
+     */
+    public function galleryImages(): array
+    {
+        $business = $this->listing->business;
+        $images = [];
+
+        $cover = $business->cover();
+
+        if ($cover !== null) {
+            $images[] = PublicImage::fromMedia($cover, 'thumb', 'card', 'detail');
+        }
+
+        foreach ($business->galleryImages() as $media) {
+            $images[] = PublicImage::fromMedia($media, 'thumb', 'card', 'detail');
+        }
+
+        return array_values(array_filter($images));
+    }
+
+    public function logoImage(): ?PublicImage
+    {
+        $logo = $this->listing->business->logo();
+
+        return $logo === null ? null : PublicImage::fromMedia($logo, 'logo');
+    }
+
+    /**
+     * Absolute URL of the 1200×630 Open Graph conversion of the cover, if it exists.
+     */
+    public function ogImageUrl(): ?string
+    {
+        $cover = $this->listing->business->cover();
+
+        return $cover === null ? null : PublicImage::fromMedia($cover, 'og')?->url('og');
     }
 
     /* --------------------------------------------------------------- price */
@@ -696,6 +753,7 @@ final class PublicListingPresenter
             description: $this->metaDescription(),
             canonical: $this->url(),
             robots: $this->robots(),
+            ogImage: $this->ogImageUrl(),
             ogType: 'article',
             jsonLd: $this->url() === null ? [] : [$this->offerJsonLd(), $this->breadcrumbJsonLd()],
         );
@@ -752,6 +810,12 @@ final class PublicListingPresenter
             'availability' => $this->isSold() ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
             'itemOffered' => $organisation,
         ];
+
+        $cover = $this->coverImage();
+
+        if ($cover !== null) {
+            $offer['image'] = $cover->url('detail');
+        }
 
         if ($listing->price_disclosure === PriceDisclosure::Exact && $listing->asking_price !== null) {
             $offer['price'] = $listing->asking_price;

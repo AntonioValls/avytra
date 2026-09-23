@@ -261,7 +261,7 @@ index (action, created_at)
 
 ### media
 
-Depende de la decisión de [17-media-strategy.md](17-media-strategy.md). Con Spatie Media Library la tabla `media` la crea el paquete (polimórfica, con `collection_name`, `order_column`, `custom_properties` para `alt`). Con solución propia: `business_images (id, business_id, collection, disk, path, width, height, size, alt, sort_order, timestamps)`.
+Depende de la decisión de [17-media-strategy.md](17-media-strategy.md). Implementada en Phase 6 con Spatie Media Library: la tabla `media` la crea el paquete (polimórfica, con `collection_name`, `order_column`, `custom_properties` para `alt`). Con solución propia: `business_images (id, business_id, collection, disk, path, width, height, size, alt, sort_order, timestamps)`.
 
 ### Tablas del framework ya existentes
 

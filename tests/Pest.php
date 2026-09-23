@@ -3,6 +3,8 @@
 use App\Models\Business;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 /*
@@ -60,4 +62,21 @@ function actingAsOwnerOf(Business $business): User
     test()->actingAs($business->owner);
 
     return $business->owner;
+}
+
+/**
+ * Fakes the two image disks (private originals and public conversions, docs/17).
+ */
+function fakeMediaDisks(): void
+{
+    Storage::fake(config('avytra.media.originals_disk'));
+    Storage::fake(config('avytra.media.disk'));
+}
+
+/**
+ * A real JPEG (GD) large enough for the upload rules.
+ */
+function fakeImage(string $name = 'foto.jpg', int $width = 800, int $height = 500): UploadedFile
+{
+    return UploadedFile::fake()->image($name, $width, $height);
 }

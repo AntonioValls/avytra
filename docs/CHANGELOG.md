@@ -2,6 +2,22 @@
 
 Formato: una sección por fase cerrada, con fecha. Cambios de documentación relevantes también se anotan.
 
+## [Phase 6] — 2026-09-23 — Medios
+
+### Añadido
+- Dependencia `spatie/laravel-medialibrary` ^11.23 (ADR-006, aprobada por el propietario al iniciar la fase; trae `spatie/image` 3, driver GD). Migración `create_media_table` y `config/media-library.php` publicada: originales en `MEDIA_ORIGINALS_DISK` (`local`, privado), conversiones en `MEDIA_DISK` (`public`), `App\Support\Media\BusinessPathGenerator` (`businesses/{business_id}/{media_id}/`), conversiones en cola (`MEDIA_QUEUE_CONVERSIONS`) tras el commit. `.env.example` con las tres variables.
+- Config `avytra.media` (`originals_disk`, `disk`, `gallery_max` 12, `max_kilobytes` 8192, dimensiones mínimas/máximas, `logo_min_*`, `allowed_extensions`, `upload_rate_limit_per_hour` 30, `quality` 82 y las conversiones `thumb` 400×250, `card` 800×500, `detail` máx. 1600, `og` 1200×630, `logo` máx. 256).
+- `Business implements HasMedia` con colecciones `logo`/`cover` (un archivo) y `gallery` desde el enum `App\Enums\MediaCollection`, conversiones WebP por colección y helpers `cover()`, `logo()`, `galleryImages()`. El borrado suave conserva los medios; el borrado definitivo (cuenta) los elimina en cascada.
+- Actions `App\Actions\Media\{AddBusinessImage, RemoveBusinessImage, ReorderBusinessGallery, UpdateBusinessImageAlt}` y excepción `GalleryFull`: nombre de archivo aleatorio, alt por defecto, rechazo (404) de medios ajenos, audit `business.images_updated_by_admin` cuando actúa el superadmin.
+- Componente Livewire `businesses.images` (`resources/views/components/businesses/⚡images.blade.php`): portada, galería y logo con `flux:file-upload` (progreso), subida inmediata, validación estricta, `wire:sort` para el orden, alt editable en línea, `wire:confirm` al quitar, limitador nombrado `image-upload` por usuario y `wire:poll` mientras haya conversiones pendientes. Incrustado en el paso 7 del wizard y en el formulario de empresa (al editar; al crear, aviso).
+- Público: `App\Support\Media\PublicImage` y `PublicListingPresenter::{coverImage, galleryImages, logoImage, ogImageUrl}` (solo URLs de conversión; `null` hasta que la conversión existe); `RELATIONS` incluye `business.media`. `x-listing-card` con portada en `srcset` `thumb`/`card`; ficha con portada `detail` (`fetchpriority="high"`), miniaturas, lightbox Alpine con flechas y teclado, logo en "Sobre la empresa"; `og:image` con la conversión `og` y `Offer.image`. Vista previa del paso 8 con la portada; tarjetas de "Mis empresas" con la portada.
+- Tests: `Media/BusinessImagesTest` (subida, reemplazo, rechazos por tipo/tamaño/dimensiones, máximo de galería, alt, orden, borrado de archivos, 403 a terceros, audit del superadmin, limitador, render en wizard y formulario), `Actions/Media/BusinessImageActionsTest` (galería llena, reorden con ids ajenos, medios ajenos, audit del alt, borrado de cuenta) y `Public/ListingImagesTest` (solo conversiones en HTML, `srcset`, placeholder, portada suplente, conversiones en cola). `phpunit.xml` sube `memory_limit` a 1G (conversiones GD en toda la suite).
+- 31 cadenas nuevas en `lang/es.json` (se retiran las tres del aviso "las imágenes llegan pronto").
+
+### Cambiado
+- El paso 7 del wizard y la página `/publicar` dejan de anunciar "próximamente".
+- Documentación: docs 07, 08, 09, 15, 16, 17 y 19 con notas de implementación, ADR-006 aceptado con resultado, `CLAUDE.md` (dependencias aprobadas), STATUS.
+
 ## [Phase 5] — 2026-09-23 — Ubicación y mapas
 
 ### Añadido

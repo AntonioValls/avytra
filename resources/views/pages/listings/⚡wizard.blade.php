@@ -1215,9 +1215,13 @@ new class extends LocationPickerComponent {
         @endif
 
         {{-- ------------------------------------------------------------ Step 7 --}}
-        @if ($step === 7)
+        @if ($step === 7 && $businessId !== null)
             <section class="flex flex-col gap-6">
-                <x-empty-state icon="photo" :heading="__('Images arrive soon.')" :text="__('Cover, logo and gallery will be available in an upcoming update. Your listing can be published without images: a brand placeholder is shown meanwhile.')" />
+                <flux:callout icon="photo" variant="secondary" inline>
+                    <flux:callout.text>{{ __('Images are saved as soon as you add them. A listing can be published without photos, but a cover image gets far more attention.') }}</flux:callout.text>
+                </flux:callout>
+
+                <livewire:businesses.images :business-id="$businessId" wire:key="images-{{ $businessId }}" />
             </section>
         @endif
 
@@ -1274,11 +1278,21 @@ new class extends LocationPickerComponent {
                     </flux:callout>
                 @endif
 
-                {{-- Preview: the real public partial, fed by the same presenter as the listing page. Images and map arrive in later phases. --}}
+                {{-- Preview: the real public partial, fed by the same presenter as the listing page. --}}
                 @php
                     $preview = PublicListingPresenter::for($listing)->withTitle($publishing->title !== '' ? $publishing->title : $this->suggestedTitle);
+                    $previewCover = $preview->coverImage();
                 @endphp
                 <flux:card class="flex flex-col gap-8">
+                    @if ($previewCover)
+                        <img src="{{ $previewCover->url('card') }}" srcset="{{ $previewCover->srcset('card', 'detail') }}" sizes="(min-width: 1024px) 768px, 100vw" width="{{ $previewCover->width('card') }}" height="{{ $previewCover->height('card') }}" alt="{{ $previewCover->alt }}" class="aspect-[16/9] w-full rounded-md object-cover" />
+                    @else
+                        <div class="flex aspect-[16/9] w-full flex-col items-center justify-center gap-2 rounded-md bg-mist text-zinc-400 dark:bg-zinc-800">
+                            <x-app-logo-icon class="size-12" />
+                            <span class="text-xs">{{ __('No photos yet') }}</span>
+                            <flux:button type="button" size="xs" variant="ghost" wire:click="goTo(7)">{{ __('Add a cover image') }}</flux:button>
+                        </div>
+                    @endif
                     <div class="flex flex-col gap-3">
                         <div class="flex flex-wrap gap-2">
                             @foreach ($preview->operationTypes() as $offered)

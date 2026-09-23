@@ -6,6 +6,7 @@ use App\Concerns\TracksAuthorship;
 use App\Enums\BusinessType;
 use App\Enums\EmployeeRange;
 use App\Enums\LegalForm;
+use App\Enums\MediaCollection;
 use App\Enums\WebsiteVisibility;
 use Database\Factories\BusinessFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -18,6 +19,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
+use Spatie\Image\Enums\Fit;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
  * The real company, owned by a user. Publishing it is a Listing (ADR-001).
@@ -61,10 +67,10 @@ use Illuminate\Support\Carbon;
     'website_url',
     'website_visibility',
 ])]
-class Business extends Model
+class Business extends Model implements HasMedia
 {
     /** @use HasFactory<BusinessFactory> */
-    use HasFactory, SoftDeletes, TracksAuthorship;
+    use HasFactory, InteractsWithMedia, SoftDeletes, TracksAuthorship;
 
     /**
      * @return array<string, string>
@@ -174,5 +180,62 @@ class Business extends Model
     public function requiresOnlineProfile(): bool
     {
         return $this->business_type->requiresOnlineProfile();
+    }
+
+    /* ---------------------------------------------------------------- media */
+
+    /**
+     * Logo, cover and gallery (docs/17). Originals go to the private disk, the public
+     * WebP conversions to the public one; the original is never served.
+     */
+    public function registerMediaCollections(): void
+    {
+        foreach (MediaCollection::cases() as $collection) {
+            $definition = $this->addMediaCollection($collection->value)
+                ->useDisk((string) config('avytra.media.originals_disk'))
+                ->storeConversionsOnDisk((string) config('avytra.media.disk'));
+
+            if ($collection->isSingleFile()) {
+                $definition->singleFile();
+            }
+        }
+    }
+
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        /** @var array<string, array{width: int, height: int, fit: string}> $conversions */
+        $conversions = config('avytra.media.conversions');
+        $quality = (int) config('avytra.media.quality');
+
+        foreach ($conversions as $name => $size) {
+            $collections = array_values(array_filter(
+                MediaCollection::cases(),
+                fn (MediaCollection $collection): bool => in_array($name, $collection->conversions(), true),
+            ));
+
+            $this->addMediaConversion($name)
+                ->performOnCollections(...array_map(fn (MediaCollection $collection): string => $collection->value, $collections))
+                ->fit($size['fit'] === 'crop' ? Fit::Crop : Fit::Max, $size['width'], $size['height'])
+                ->format('webp')
+                ->quality($quality);
+        }
+    }
+
+    public function cover(): ?Media
+    {
+        return $this->getFirstMedia(MediaCollection::Cover->value);
+    }
+
+    public function logo(): ?Media
+    {
+        return $this->getFirstMedia(MediaCollection::Logo->value);
+    }
+
+    /**
+     * @return Collection<int, Media>
+     */
+    public function galleryImages(): Collection
+    {
+        return $this->getMedia(MediaCollection::Gallery->value)->values();
     }
 }

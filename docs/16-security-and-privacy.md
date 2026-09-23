@@ -44,6 +44,8 @@ Definidos en `AppServiceProvider` con nombres (`register` y `public` desde Phase
 - Nombres de archivo aleatorios; ruta por `business_id`; disco `public` en MVP (o S3-compatible vía config).
 - Sin SVG de usuario.
 
+Implementación (Phase 6): reglas desde `config('avytra.media')` en el componente `businesses.images`; el original va al disco privado `MEDIA_ORIGINALS_DISK` (`local`) y solo las conversiones WebP al disco `MEDIA_DISK` (`public`), en `businesses/{business_id}/{media_id}/` (`App\Support\Media\BusinessPathGenerator`). Limitador nombrado `image-upload` (30/hora por usuario). El presentador público solo expone `PublicImage` con URLs de conversión; el nombre y la ruta del original nunca aparecen en HTML.
+
 ## XSS y salida
 
 - Todo texto de usuario se renderiza con `{{ }}` (escapado). `{!! !!}` prohibido para contenido de usuario.

@@ -9,6 +9,7 @@
     $primary = $operations[0] ?? null;
     $extra = max(count($operations) - 1, 0);
     $revenue = $listing->disclosedFigure(\App\Enums\FinancialMetric::AnnualRevenue);
+    $cover = $listing->coverImage();
 @endphp
 
 {{-- Public card (docs/08, "Tarjeta de publicación"). Pure Blade; receives the public presenter, never the model. --}}
@@ -17,9 +18,22 @@
     wire:navigate
     {{ $attributes->class('group flex flex-col overflow-hidden rounded-md border border-zinc-200 bg-white transition hover:border-zinc-300 hover:shadow-md focus:outline-hidden focus-visible:ring-2 focus-visible:ring-transfer focus-visible:ring-offset-2') }}
 >
-    {{-- Cover placeholder with the brand symbol; real images arrive in Phase 6. --}}
-    <div class="relative flex aspect-[16/10] w-full items-center justify-center bg-mist">
-        <x-app-logo-icon class="size-14 text-zinc-300" />
+    {{-- Cover (WebP conversions only) or the brand placeholder; same ratio to avoid layout shifts. --}}
+    <div class="relative flex aspect-[16/10] w-full items-center justify-center overflow-hidden bg-mist">
+        @if ($cover)
+            <img
+                src="{{ $cover->url('thumb') }}"
+                srcset="{{ $cover->srcset('thumb', 'card') }}"
+                sizes="(min-width: 1280px) 400px, (min-width: 640px) 50vw, 100vw"
+                width="{{ $cover->width('card') }}"
+                height="{{ $cover->height('card') }}"
+                alt="{{ $cover->alt }}"
+                @if ($eager) fetchpriority="high" @else loading="lazy" @endif
+                class="size-full object-cover transition duration-300 group-hover:scale-[1.02]"
+            />
+        @else
+            <x-app-logo-icon class="size-14 text-zinc-300" />
+        @endif
 
         <div class="absolute start-3 top-3 flex flex-wrap gap-1.5">
             @if ($primary)

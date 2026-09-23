@@ -12,7 +12,7 @@ Por empresa: logo opcional (cuadrado), portada recomendada (16:10), galería opc
 | **B. Modelo propio + `intervention/image` v3** | Dependencia pequeña y conocida; control total del esquema | Sigue habiendo que escribir colecciones, orden, conversiones en cola, borrado |
 | **C. `spatie/laravel-medialibrary` v11 (+ `spatie/image`)** | Resuelve colecciones (`logo`, `cover`, `gallery`), conversiones declarativas en cola, orden (`order_column`), `custom_properties` (alt), borrado en cascada, `srcset` responsive, disco configurable (local/S3); mantenimiento excelente (Spatie), muy usado con Livewire | Dependencia mayor (trae `spatie/image`, que usa GD o Imagick); tabla `media` polimórfica genérica; curva de aprendizaje mínima |
 
-## Decisión (ADR-006): Spatie Media Library — pendiente de aprobación al inicio de Phase 6
+## Decisión (ADR-006): Spatie Media Library — aprobada al inicio de Phase 6 (2026-09-23)
 
 Justificación: el 80 % del trabajo de medios (conversiones en cola, orden, colecciones, borrado seguro, responsive) ya está resuelto y probado; escribirlo a mano añade código propio sin valor diferencial y ParkingParaCamiones demuestra que la vía "GD a mano" termina recortando funcionalidad (una sola derivada de 1920 px para todo). El paquete se mantiene activamente, soporta Laravel 13 y se integra con uploads temporales de Livewire.
 
@@ -52,6 +52,17 @@ Sin portada: bloque Mist con `avytra-symbol.svg` centrado y nombre del sector; m
 - `<img>` con `width`/`height`, `srcset` (`thumb`/`card`) y `sizes`; `loading="lazy"` salvo portada de ficha.
 - Conversiones en cola (`queue` configurada) para no bloquear el wizard; hasta que existan, se muestra el original redimensionado por CSS o el placeholder (la vista comprueba `hasGeneratedConversion`).
 - Comando de regeneración disponible en el paquete (`media-library:regenerate`).
+
+## Implementación (Phase 6)
+
+- `spatie/laravel-medialibrary` ^11.23 (con `spatie/image` 3, driver GD). Config publicada en `config/media-library.php`: originales en `MEDIA_ORIGINALS_DISK` (`local`, privado), conversiones en `MEDIA_DISK` (`public`), `path_generator` propio (`businesses/{business_id}/{media_id}/`), conversiones en cola por defecto (`MEDIA_QUEUE_CONVERSIONS`), tras el commit.
+- Números en `config/avytra.php` → `media`: `gallery_max` 12, `max_kilobytes` 8192, dimensiones mínimas (600×400; logo 128×128) y máximas (8000×8000), extensiones, `upload_rate_limit_per_hour` 30, `quality` 82 y las cinco conversiones (`thumb` 400×250 crop, `card` 800×500 crop, `detail` máx. 1600, `og` 1200×630 crop solo para `cover`, `logo` máx. 256).
+- `Business implements HasMedia`: colecciones `logo`, `cover` (single file) y `gallery` desde el enum `App\Enums\MediaCollection`; helpers `cover()`, `logo()`, `galleryImages()`. El borrado suave de la empresa conserva los medios; `forceDelete` (borrado de cuenta) los elimina en cascada.
+- Actions `App\Actions\Media\{AddBusinessImage, RemoveBusinessImage, ReorderBusinessGallery, UpdateBusinessImageAlt}`: nombre aleatorio, alt por defecto ("{empresa}, imagen N", "{empresa}, imagen de portada", "{empresa}, logo"), `GalleryFull` al superar el máximo, rechazo (404) de medios de otra empresa y audit `business.images_updated_by_admin` cuando actúa el superadmin.
+- Componente Livewire `businesses.images` (paso 7 del wizard y formulario de empresa al editar): subida inmediata con `flux:file-upload` + `with-progress`, `wire:sort` en la galería, alt en línea (`wire:model.blur`), `wire:confirm` al quitar, limitador `image-upload`, `wire:poll.5s` mientras haya conversiones pendientes y estado "Procesando la imagen…".
+- Público: `App\Support\Media\PublicImage` (solo URLs de conversión; `null` mientras la conversión no exista) y `PublicListingPresenter::{coverImage, galleryImages, logoImage, ogImageUrl}`; `RELATIONS` incluye `business.media`. Sin portada, la primera imagen de la galería hace de portada. Tarjetas con `srcset` `thumb`/`card`; ficha con `detail`, miniaturas y lightbox; `og:image` y `Offer.image`.
+- Tests: `Media/BusinessImagesTest`, `Actions/Media/BusinessImageActionsTest`, `Public/ListingImagesTest` (con `Storage::fake` de ambos discos y conversiones reales con GD; `phpunit.xml` sube `memory_limit` a 1G). El seeder de demo no adjunta imágenes.
+- Producción: `php artisan storage:link`, un worker de cola (`queue:work`) para las conversiones y, si se cambian los tamaños, `php artisan media-library:regenerate`.
 
 ## Tests previstos
 

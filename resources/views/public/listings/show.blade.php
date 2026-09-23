@@ -62,22 +62,66 @@
             </div>
         </header>
 
-        {{-- Gallery: brand placeholder until Phase 6. The Alpine lightbox is wired for when images exist. --}}
+        {{-- Gallery (docs/08): cover, thumbnails and an Alpine lightbox. Only WebP conversions reach the HTML; without images, the brand placeholder. --}}
+        @php
+            $images = $listing->galleryImages();
+            $lightbox = array_map(fn (\App\Support\Media\PublicImage $image): array => ['src' => $image->url('detail'), 'alt' => $image->alt], $images);
+        @endphp
         <div
-            x-data="{ images: [], open: false, current: 0, show(index) { this.current = index; this.open = true } }"
+            x-data="{ images: @js($lightbox), open: false, current: 0, show(index) { this.current = index; this.open = true }, next() { this.current = (this.current + 1) % this.images.length }, prev() { this.current = (this.current - 1 + this.images.length) % this.images.length } }"
             class="flex flex-col gap-3"
         >
-            <div class="flex aspect-[16/9] w-full items-center justify-center overflow-hidden rounded-lg bg-mist lg:aspect-[21/9]">
-                <div class="flex flex-col items-center gap-2 text-zinc-400">
-                    <x-app-logo-icon class="size-16" />
-                    <span class="text-xs">{{ __('No photos yet') }}</span>
+            @if ($images === [])
+                <div class="flex aspect-[16/9] w-full items-center justify-center overflow-hidden rounded-lg bg-mist lg:aspect-[21/9]">
+                    <div class="flex flex-col items-center gap-2 text-zinc-400">
+                        <x-app-logo-icon class="size-16" />
+                        <span class="text-xs">{{ __('No photos yet') }}</span>
+                    </div>
                 </div>
-            </div>
+            @else
+                @php $first = $images[0]; @endphp
+                <button type="button" x-on:click="show(0)" class="group relative aspect-[16/9] w-full overflow-hidden rounded-lg bg-mist lg:aspect-[21/9] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-transfer focus-visible:ring-offset-2" aria-label="{{ __('Open the photos') }}">
+                    <img
+                        src="{{ $first->url('detail') }}"
+                        srcset="{{ $first->srcset('card', 'detail') }}"
+                        sizes="(min-width: 1280px) 1216px, 100vw"
+                        width="{{ $first->width('detail') }}"
+                        height="{{ $first->height('detail') }}"
+                        alt="{{ $first->alt }}"
+                        fetchpriority="high"
+                        class="size-full object-cover transition duration-300 group-hover:scale-[1.01]"
+                    />
+                    @if (count($images) > 1)
+                        <span class="absolute bottom-3 end-3 inline-flex items-center gap-1 rounded-full bg-ink/80 px-3 py-1 text-xs font-semibold text-white"><flux:icon.photo variant="micro" /> {{ __(':count photos', ['count' => count($images)]) }}</span>
+                    @endif
+                </button>
+
+                @if (count($images) > 1)
+                    <ul class="grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-8">
+                        @foreach ($images as $index => $image)
+                            <li>
+                                <button type="button" x-on:click="show({{ $index }})" class="block aspect-[16/10] w-full overflow-hidden rounded-sm bg-mist focus:outline-hidden focus-visible:ring-2 focus-visible:ring-transfer focus-visible:ring-offset-2">
+                                    <img src="{{ $image->url('thumb') }}" width="{{ $image->width('thumb') }}" height="{{ $image->height('thumb') }}" alt="{{ $image->alt }}" loading="lazy" class="size-full object-cover" />
+                                </button>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            @endif
 
             <template x-if="open">
-                <div class="fixed inset-0 z-50 flex items-center justify-center bg-ink/95 p-4" x-on:keydown.escape.window="open = false" x-on:click.self="open = false" role="dialog" aria-modal="true">
-                    <button type="button" class="absolute end-4 top-4 rounded-full bg-white/10 p-2 text-white" x-on:click="open = false" aria-label="{{ __('Close') }}"><flux:icon.x-mark /></button>
-                    <img :src="images[current]?.src" :alt="images[current]?.alt" class="max-h-full max-w-full rounded-md" />
+                <div class="fixed inset-0 z-50 flex items-center justify-center bg-ink/95 p-4" x-on:keydown.escape.window="open = false" x-on:keydown.arrow-right.window="next()" x-on:keydown.arrow-left.window="prev()" x-on:click.self="open = false" role="dialog" aria-modal="true">
+                    <button type="button" class="absolute end-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" x-on:click="open = false" aria-label="{{ __('Close') }}"><flux:icon.x-mark /></button>
+                    <template x-if="images.length > 1">
+                        <div>
+                            <button type="button" class="absolute start-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" x-on:click="prev()" aria-label="{{ __('Previous') }}"><flux:icon.chevron-left /></button>
+                            <button type="button" class="absolute end-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white hover:bg-white/20" x-on:click="next()" aria-label="{{ __('Next') }}"><flux:icon.chevron-right /></button>
+                        </div>
+                    </template>
+                    <figure class="flex max-h-full max-w-6xl flex-col items-center gap-3">
+                        <img :src="images[current]?.src" :alt="images[current]?.alt" class="max-h-[85vh] max-w-full rounded-md object-contain" />
+                        <figcaption class="text-sm text-white/80" x-text="(images[current]?.alt || '') + ' · ' + (current + 1) + ' / ' + images.length"></figcaption>
+                    </figure>
                 </div>
             </template>
         </div>
@@ -98,7 +142,12 @@
                 @endif
 
                 <flux:card class="flex flex-col gap-3">
-                    <flux:heading size="lg">{{ __('About the business') }}</flux:heading>
+                    <div class="flex items-center gap-3">
+                        @if ($logo = $listing->logoImage())
+                            <img src="{{ $logo->url('logo') }}" alt="{{ $logo->alt }}" width="48" height="48" loading="lazy" class="size-12 shrink-0 rounded-sm object-contain" />
+                        @endif
+                        <flux:heading size="lg">{{ __('About the business') }}</flux:heading>
+                    </div>
                     <dl class="flex flex-col gap-2 text-sm">
                         <div class="flex justify-between gap-4"><dt class="text-slate">{{ __('Business') }}</dt><dd class="text-end font-semibold text-ink">{{ $listing->businessName() }}</dd></div>
                         <div class="flex justify-between gap-4"><dt class="text-slate">{{ __('Sector') }}</dt><dd class="text-end font-semibold text-ink">{{ $listing->categoryName() }}</dd></div>

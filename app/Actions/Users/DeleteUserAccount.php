@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\DB;
  * Listings are archived first (so the history records the withdrawal) and then removed
  * with their business; locations, online profiles, metrics and events follow through
  * the database cascade. The businesses are removed for real (not soft-deleted) because
- * the account is gone. Phase 6 adds the images.
+ * the account is gone, which also removes their images from every disk (Media Library cascade).
  */
 class DeleteUserAccount
 {

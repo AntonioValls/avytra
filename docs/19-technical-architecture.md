@@ -131,6 +131,6 @@ SQL: `LIKE` sobre título y nombre + filtros por columnas indexadas + `whereHas`
 
 ## Decisiones que requieren aprobación antes de ejecutarse
 
-1. Añadir `maplibre-gl` (npm) en Phase 5.
-2. Añadir `spatie/laravel-medialibrary` en Phase 6.
+1. ~~Añadir `maplibre-gl` (npm) en Phase 5.~~ Aprobado (ADR-005).
+2. ~~Añadir `spatie/laravel-medialibrary` en Phase 6.~~ Aprobado (ADR-006).
 3. Cualquier otro paquete.

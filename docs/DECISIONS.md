@@ -88,9 +88,9 @@ Resultado (Phase 5): el worker de MapLibre v6 se resuelve importándolo con `?wo
 
 ---
 
-## ADR-006 — Medios con Spatie Media Library (propuesta)
+## ADR-006 — Medios con Spatie Media Library
 
-Status: Proposed (se acepta o rechaza al iniciar Phase 6)
+Status: Accepted (2026-09-23, al pedir el propietario el inicio de Phase 6; misma regla que ADR-005 en Phase 5)
 Date: 2026-09-21
 
 ### Context
@@ -101,6 +101,8 @@ Proponer `spatie/laravel-medialibrary` con conversiones en cola. Alternativa B (
 
 ### Consequences
 Dependencia externa mantenida por Spatie; tabla `media` polimórfica. Requiere aprobación explícita del propietario (regla del proyecto sobre dependencias).
+
+Resultado (Phase 6): instalado `spatie/laravel-medialibrary` ^11.23 con driver GD. Decisiones de detalle: los originales se guardan en un disco privado (`local`) y solo las conversiones WebP en el público, de modo que el archivo subido nunca es accesible por URL; ruta `businesses/{business_id}/{media_id}/`; conversiones en cola tras el commit; `PublicImage` devuelve `null` hasta que existe la conversión (placeholder mientras tanto). Detalle en docs/17.
 
 ---
 

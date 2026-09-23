@@ -88,6 +88,34 @@ return [
         ],
     ],
 
+    'media' => [
+        // Where the original uploads live (never served) and where the public WebP conversions go.
+        'originals_disk' => env('MEDIA_ORIGINALS_DISK', 'local'),
+        'disk' => env('MEDIA_DISK', 'public'),
+        // Gallery size per business (docs/17).
+        'gallery_max' => 12,
+        // Upload validation: size in kilobytes and pixel bounds.
+        'max_kilobytes' => 8192,
+        'min_width' => 600,
+        'min_height' => 400,
+        'logo_min_width' => 128,
+        'logo_min_height' => 128,
+        'max_width' => 8000,
+        'max_height' => 8000,
+        'allowed_extensions' => ['jpg', 'jpeg', 'png', 'webp'],
+        // Uploads allowed per user and hour.
+        'upload_rate_limit_per_hour' => 30,
+        // Conversions (WebP). Widths/heights in pixels; "crop" fills the box, "max" fits inside without upscaling.
+        'quality' => 82,
+        'conversions' => [
+            'thumb' => ['width' => 400, 'height' => 250, 'fit' => 'crop'],
+            'card' => ['width' => 800, 'height' => 500, 'fit' => 'crop'],
+            'detail' => ['width' => 1600, 'height' => 1600, 'fit' => 'max'],
+            'og' => ['width' => 1200, 'height' => 630, 'fit' => 'crop'],
+            'logo' => ['width' => 256, 'height' => 256, 'fit' => 'max'],
+        ],
+    ],
+
     'support' => [
         'email' => env('AVYTRA_SUPPORT_EMAIL'),
         'phone' => env('AVYTRA_SUPPORT_PHONE'),

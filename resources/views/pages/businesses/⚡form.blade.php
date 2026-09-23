@@ -515,4 +515,20 @@ new class extends LocationPickerComponent {
             <flux:button variant="primary" type="submit">{{ $businessId === null ? __('Create business') : __('Save changes') }}</flux:button>
         </div>
     </form>
+
+    {{-- Images live outside the form: each one is stored as soon as it is chosen (docs/17). --}}
+    <section class="flex max-w-3xl flex-col gap-6 border-t border-zinc-200 pt-10 dark:border-zinc-700">
+        <div class="flex flex-col gap-1">
+            <flux:heading size="xl" level="2">{{ __('Images') }}</flux:heading>
+            <flux:text>{{ __('Cover, gallery and logo are shared by every listing of this business.') }}</flux:text>
+        </div>
+
+        @if ($businessId === null)
+            <flux:callout icon="photo" variant="secondary" inline>
+                <flux:callout.text>{{ __('Create the business first; you will be able to add images right after.') }}</flux:callout.text>
+            </flux:callout>
+        @else
+            <livewire:businesses.images :business-id="$businessId" wire:key="images-{{ $businessId }}" />
+        @endif
+    </section>
 </div>

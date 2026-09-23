@@ -10,7 +10,7 @@ Plataforma web **gratuita** para descubrir, publicar, vender y traspasar empresa
 
 PHP 8.4 · Laravel 13 · Livewire 4 (componentes single-file `⚡nombre.blade.php` + `Route::livewire()`) · Flux UI 2 + Flux UI Pro 2 · Tailwind CSS 4 · Vite 8 · Fortify (registro, reset, verificación, 2FA, passkeys) · Pest 5 · Larastan · Pint · MySQL/MariaDB (SQLite en memoria para tests) · Blaze.
 
-**No añadir ni sustituir dependencias sin aprobación explícita del propietario** y sin registrar un ADR en `docs/DECISIONS.md`. Aprobado en Phase 5: `maplibre-gl`. Pendiente de aprobación en su fase: `spatie/laravel-medialibrary` (Phase 6).
+**No añadir ni sustituir dependencias sin aprobación explícita del propietario** y sin registrar un ADR en `docs/DECISIONS.md`. Aprobados: `maplibre-gl` (Phase 5, ADR-005) y `spatie/laravel-medialibrary` (Phase 6, ADR-006).
 
 ## Metodología por fases (obligatoria)
 
