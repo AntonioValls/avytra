@@ -62,6 +62,8 @@ Leyenda: ✅ permitido · ❌ denegado · 🔒 solo si es propietario
 | Suspender / levantar suspensión | ❌ | ❌ | ✅ |
 | Eliminar definitivamente | ❌ | ❌ (solo borradores propios) | ✅ |
 | Reportar | ✅ (rate limit) | ✅ | ✅ |
+| Enviar mensaje al vendedor (relay, Phase 11) | ✅ (rate limit) | ✅ | ✅ |
+| Leer los mensajes recibidos | ❌ | 🔒 (de sus publicaciones) | ✅ (solo lectura, en el detalle) |
 
 ### Usuarios
 
@@ -85,7 +87,7 @@ Leyenda: ✅ permitido · ❌ denegado · 🔒 solo si es propietario
 
 ## Implementación: Policies como única fuente de autorización
 
-- `App\Policies\BusinessPolicy`, `App\Policies\ListingPolicy`, `App\Policies\UserPolicy`, `App\Policies\ListingReportPolicy`.
+- `App\Policies\BusinessPolicy`, `App\Policies\ListingPolicy`, `App\Policies\UserPolicy`, `App\Policies\ListingReportPolicy`, `App\Policies\ContactRequestPolicy` (Phase 11: `viewAny` para cualquier usuario con consulta acotada a sus publicaciones; `view` y `markAsRead` para el propietario de la publicación).
 - Cada Policy implementa `before(User $user, string $ability): ?bool` devolviendo `true` cuando `$user->isSuperadmin()`. Excepción: acciones que ni el superadmin puede hacer (cambiar rol) se comprueban explícitamente y no dependen de `before`.
 - Los componentes Livewire y controladores llaman `$this->authorize('update', $listing)` (o `Gate::authorize`) **al inicio de cada acción**, nunca solo al renderizar.
 - Las vistas usan `@can` únicamente para mostrar u ocultar controles; nunca como única barrera.

@@ -88,6 +88,14 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     /**
      * Get the user's initials
      */
+    /**
+     * Messages relayed from public listing pages that the user has not opened yet (ADR-019).
+     */
+    public function unreadContactRequestsCount(): int
+    {
+        return ContactRequest::query()->receivedBy($this)->unread()->count();
+    }
+
     public function initials(): string
     {
         $initials = Str::initials($this->name, true);

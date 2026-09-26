@@ -243,6 +243,26 @@ resolution_notes       string(500) nullable
 timestamps
 ```
 
+### contact_requests (Phase 11, ADR-019)
+
+```text
+id
+listing_id             FK listings, cascadeOnDelete
+sender_user_id         FK users nullable, nullOnDelete   (si el interesado tenía sesión)
+sender_name            string(120)
+sender_email           string(255)
+sender_phone           string(30) nullable
+message                text                             (texto plano)
+ip_hash                string(64) nullable              (sha256 de IP+clave, tope diario y abuso)
+read_at                timestamp nullable               (lo escribe MarkContactRequestAsRead)
+delivery_failed_at     timestamp nullable               (lo escribe ContactRequestReceived::failed)
+delivery_error         string(500) nullable
+timestamps
+index (listing_id, read_at) · index (listing_id, ip_hash, created_at)
+```
+
+El destinatario no se guarda: se resuelve al enviar (`Listing::contactInboxEmail()` = `contact_email` o el email de la cuenta del propietario). Los datos del remitente solo los ven el propietario de la publicación y el superadmin.
+
 ### audit_logs
 
 ```text

@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\ContactRequest;
 use App\Models\Listing;
 use App\Models\ListingReport;
 use App\Models\User;
@@ -79,6 +80,12 @@ new class extends Component {
     }
 
     #[Computed]
+    public function undeliveredMessagesCount(): int
+    {
+        return ContactRequest::query()->undelivered()->count();
+    }
+
+    #[Computed]
     public function assistedAccountsCount(): int
     {
         return User::query()->where('is_assisted', true)->count();
@@ -153,7 +160,7 @@ new class extends Component {
         </flux:callout>
     @endif
 
-    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <flux:card class="flex flex-col gap-1">
             <flux:text size="sm">{{ __('Needs confirmation') }}</flux:text>
             <flux:heading size="xl">{{ $this->needingConfirmationCount }}</flux:heading>
@@ -178,6 +185,11 @@ new class extends Component {
             <flux:text size="sm">{{ __('Assisted accounts') }}</flux:text>
             <flux:heading size="xl">{{ $this->assistedAccountsCount }}</flux:heading>
             <flux:link :href="route('admin.users.index', ['condicion' => 'assisted'])" wire:navigate class="text-sm">{{ __('See all') }}</flux:link>
+        </flux:card>
+        <flux:card class="flex flex-col gap-1">
+            <flux:text size="sm">{{ __('Undelivered messages') }}</flux:text>
+            <flux:heading size="xl">{{ $this->undeliveredMessagesCount }}</flux:heading>
+            <flux:text size="sm" class="text-slate">{{ __('Relayed messages whose email failed; the owner still sees them in their panel.') }}</flux:text>
         </flux:card>
     </div>
 

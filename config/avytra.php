@@ -28,8 +28,14 @@ return [
     ],
 
     'contact' => [
-        // "Show phone / email" clicks allowed per IP and hour on public listing pages.
+        // "Show phone / WhatsApp" clicks allowed per IP and hour on public listing pages.
         'reveal_rate_limit_per_hour' => 20,
+        // Relay form ("Send a message", ADR-019): messages per IP and hour, and per IP, listing and day.
+        'request_rate_limit_per_hour' => 5,
+        'requests_per_listing_per_day' => 3,
+        'request_message_max_length' => 2000,
+        // A relay form submitted faster than this is treated as a bot (honeypot companion).
+        'request_min_seconds_to_submit' => 3,
     ],
 
     'reports' => [

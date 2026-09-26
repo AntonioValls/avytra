@@ -1179,7 +1179,7 @@ new class extends LocationPickerComponent {
         @if ($step === 6)
             <section class="flex flex-col gap-6">
                 <flux:callout icon="eye" variant="secondary">
-                    <flux:callout.text>{{ __('Everything you write here will be shown on your listing. Leave empty any channel you do not want to share.') }}</flux:callout.text>
+                    <flux:callout.text>{{ __('Everything you write here will be shown on your listing, except the email: buyers write to you through a form and you receive their messages in that inbox. Leave empty any channel you do not want to share.') }}</flux:callout.text>
                 </flux:callout>
 
                 <flux:input wire:model="contact.contact_name" :label="__('Contact name')" :description="__('Who buyers will talk to. It does not have to be you.')" maxlength="80" />
@@ -1191,7 +1191,7 @@ new class extends LocationPickerComponent {
                 </flux:radio.group>
 
                 <div class="grid gap-6 sm:grid-cols-2">
-                    <flux:input wire:model="contact.contact_email" type="email" :label="__('Contact email')" maxlength="255" />
+                    <flux:input wire:model="contact.contact_email" type="email" :label="__('Contact email')" :description="__('Never shown. Messages from buyers arrive here; if empty, at your account email.')" maxlength="255" />
                     <flux:phone wire:model="contact.contact_phone" country="es" :country-order="['es', 'pt', 'fr', 'ad']" :label="__('Contact phone')" />
                 </div>
 
@@ -1222,7 +1222,7 @@ new class extends LocationPickerComponent {
                         @if ($contact->contact_notes !== '')
                             <flux:text size="sm">{{ $contact->contact_notes }}</flux:text>
                         @endif
-                        <flux:text size="sm" class="text-slate">{{ __('Phone numbers and emails are revealed only after a click, to hinder automated harvesting.') }}</flux:text>
+                        <flux:text size="sm" class="text-slate">{{ __('Phone numbers are revealed only after a click, to hinder automated harvesting. The email is never shown: buyers send you a message from the listing.') }}</flux:text>
                     </div>
                 </flux:card>
             </section>

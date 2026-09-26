@@ -6,9 +6,9 @@ Ideas documentadas para no contaminar el MVP y para comprobar que el dominio act
 |---|---|---|
 | Favoritos | Tabla pivote `user_listing_favorites` | Requiere registro de compradores; hoy no existe rol comprador, un `user` sirve |
 | Alertas y búsquedas guardadas | `saved_searches (user_id, filters json, frequency)` + job diario | Reutiliza los filtros por URL |
-| Formulario de contacto relay | `contact_requests` + notificación al propietario | Oculta email; base de estadísticas de contacto |
+| ~~Formulario de contacto relay~~ | `contact_requests` + notificación al propietario | **Hecho en Phase 11 (ADR-019).** Base de estadísticas de contacto |
 | Mensajería interna | `conversations`, `messages` | Solo si el relay demuestra demanda |
-| Estadísticas del anuncio | `listing_stats_daily (views, contact_reveals)` | Contadores agregados, no tracking individual |
+| Estadísticas del anuncio | `listing_stats_daily (views, contact_reveals, messages)` | Contadores agregados, no tracking individual; `contact_requests` ya cuenta los mensajes |
 | NDA / documentos privados / data room | `listing_documents` con acceso por solicitud | Cambia el modelo de confianza; requiere verificación |
 | Verificación de empresas | `businesses.verified_at`, `verified_by_user_id` | Badge "Verificada"; proceso manual del superadmin |
 | Valoración empresarial orientativa | Servicio de cálculo sobre `listing_financial_metrics` | Con disclaimers; no asesoramiento |

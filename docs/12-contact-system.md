@@ -20,7 +20,7 @@ Columnas en `listings` (ver [07-database-design.md](07-database-design.md)):
 | `contact_other` | Texto libre corto ("Preguntar por Marta en el local"). |
 | `contact_notes` | Horario o instrucciones ("Llamar de 9 a 14h"). |
 
-**Regla de visibilidad:** todo canal relleno en la publicación es público; no hay flags `show_*` porque la única razón de rellenarlo es que se muestre. Si el vendedor no quiere mostrar su teléfono, simplemente no lo rellena. La UI del wizard lo explica con una frase: "Todo lo que escribas aquí se mostrará en tu publicación."
+**Regla de visibilidad:** todo canal relleno en la publicación es público, **salvo el email** (desde Phase 11, ADR-019): `contact_email` es el buzón donde llegan los mensajes del formulario relay y nunca se imprime. No hay flags `show_*` porque la única razón de rellenar un canal es que se muestre. Si el vendedor no quiere mostrar su teléfono, simplemente no lo rellena. La UI del wizard lo explica con una frase: "Todo lo que escribas aquí se mostrará en tu publicación, salvo el email."
 
 **Validación al publicar:** `preferred_contact_method` obligatorio y su canal correspondiente relleno (`email` ⇒ `contact_email`, `phone` ⇒ `contact_phone`, `whatsapp` ⇒ `contact_whatsapp`, `website` ⇒ `contact_website_url`, `external_form` ⇒ `contact_form_url`, `other` ⇒ `contact_other`).
 
@@ -38,7 +38,7 @@ El wizard **sugiere** (prefill visible y editable) nombre y email del usuario en
 Bloque lateral en la ficha:
 
 1. Nombre de contacto.
-2. Canal preferido destacado como botón primario (Lime): "Enviar email", "Llamar", "WhatsApp", "Ir a la web", "Rellenar formulario".
+2. Canal preferido destacado como botón primario (Lime): "Enviar mensaje" (relay), "Llamar", "WhatsApp", "Ir a la web", "Rellenar formulario". "Enviar mensaje" aparece siempre (como secundario si el preferido es otro).
 3. Resto de canales como botones secundarios.
 4. Notas de contacto.
 5. Texto discreto: "Al contactar, menciona que has visto esta publicación en AVYTRA."
@@ -46,9 +46,18 @@ Bloque lateral en la ficha:
 ### Protección contra scraping y spam
 
 - **Teléfono y WhatsApp** no se renderizan en el HTML inicial. Se muestran tras pulsar "Mostrar teléfono" (acción Livewire con `RateLimiter` por IP: 20 revelaciones/hora). No es infalible pero elimina el scraping trivial y permite medir interés en el futuro.
-- **Email**: `mailto:` con asunto prefijado ("Interesado en: {título} — AVYTRA"). Se renderiza también tras clic, por la misma razón. Alternativa evaluada y descartada en MVP: formulario de contacto relay (AVYTRA envía el email por el comprador). Ventajas: oculta el email; desventajas: requiere anti-spam propio, entregabilidad y confianza en que el email llega. Queda en roadmap como "formulario de contacto relay" ligado a estadísticas.
+- **Email**: hasta Phase 10, `mailto:` revelado tras clic. Desde Phase 11 (ADR-019) el email **nunca** se renderiza: el interesado escribe por el formulario relay (ver abajo) y AVYTRA reenvía el mensaje al buzón del vendedor.
 - WhatsApp: enlace `https://wa.me/{E164}?text=` con mensaje prefijado.
 - Enlaces externos con `rel="nofollow noopener"` y `target="_blank"`.
+
+## Formulario relay "Enviar mensaje" (Phase 11, ADR-019)
+
+- **Dónde:** en toda publicación `published`, dentro del bloque "Contactar con el propietario" (`public.contact-request-form`, modal `contact-request`). No en vendidas ni pausadas (404 si se invoca la acción).
+- **Qué pide:** nombre, email, teléfono opcional y mensaje (`avytra.contact.request_message_max_length`, texto plano). Con sesión iniciada, nombre y email se prerrellenan y son editables.
+- **Destinatario:** `Listing::contactInboxEmail()` = `contact_email` o, si falta, el email de la cuenta del propietario (mismo criterio que los recordatorios de vigencia). Por eso el botón existe aunque la publicación solo tenga teléfono.
+- **Qué pasa:** `SubmitContactRequest` guarda `contact_requests` y envía `ContactRequestReceived` en cola (notificación bajo demanda, `Reply-To` = interesado, botón "Ver mis mensajes"). El vendedor responde desde su cliente de correo; su dirección solo se conoce si contesta. **No se envía copia ni confirmación al remitente**: evitaría que el relay sirva para mandar correo a terceros. Si el email falla tras los reintentos, `failed()` marca `delivery_failed_at` y el mensaje sigue visible en `/panel/mensajes` (docs/09).
+- **Anti-spam:** honeypot `website`, tiempo mínimo (`avytra.contact.request_min_seconds_to_submit`), limitador nombrado `contact-request` (`request_rate_limit_per_hour` por IP) y tope diario por publicación e IP (`requests_per_listing_per_day`, sobre `ip_hash`). Los bots reciben el mismo "Mensaje enviado" y se descartan.
+- **Presentador:** `PublicListingPresenter::isRelayChannel()` (email) frente a `isSensitiveChannel()` (teléfono, WhatsApp); `contactMethods()` incluye siempre el email; `publicChannel()` y `sensitiveChannel()` devuelven `null` para él.
 
 ## Publicaciones sin canal digital
 
@@ -64,6 +73,7 @@ Implementación (Phase 4): `resources/views/components/public/⚡contact-box.bla
 
 - Publicar sin método preferido o sin su canal falla con mensaje claro.
 - La proyección pública no incluye el email del usuario ni su teléfono de perfil.
-- El teléfono no aparece en el HTML inicial de la ficha y sí tras la acción de revelar.
+- El teléfono no aparece en el HTML inicial de la ficha y sí tras la acción de revelar; el email no aparece nunca, ni tras revelar.
+- Relay (Phase 11): creación y envío al buzón correcto (`contact_email` o cuenta), `Reply-To`, prefill con sesión, honeypot y tiempo mínimo, limitador por IP y tope por publicación, solo `published`, policy y página de mensajes (solo propios, marcar leído, contador), tarjeta admin y contador de no entregados.
 - Rate limit de revelación devuelve respuesta controlada.
 - Prefill del wizard no persiste datos hasta completar el paso.

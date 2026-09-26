@@ -2,7 +2,7 @@
 
 ## Autorización
 
-- **Policies** (`BusinessPolicy`, `ListingPolicy`, `UserPolicy`, `ListingReportPolicy`) son la única fuente de verdad. Ver [03-users-roles-permissions.md](03-users-roles-permissions.md).
+- **Policies** (`BusinessPolicy`, `ListingPolicy`, `UserPolicy`, `ListingReportPolicy`, `ContactRequestPolicy`) son la única fuente de verdad. Ver [03-users-roles-permissions.md](03-users-roles-permissions.md).
 - Cada acción Livewire que muta un recurso empieza con `$this->authorize(...)`. Cada método `mount()` de componentes con recurso también.
 - Middleware `EnsureUserIsSuperadmin` para `/admin/*`; responde **404**, no 403 (no revela el panel).
 - Livewire: las propiedades públicas que representan modelos se cargan por ID y se re-autorizan en cada acción; nunca se confía en propiedades públicas para decidir permisos (un cliente puede modificarlas). Propiedades sensibles se declaran `#[Locked]`.
@@ -29,7 +29,8 @@
 | Login, 2FA, passkeys | Existentes en `FortifyServiceProvider` |
 | Registro | 5/hora por IP (se añade) |
 | Reportar publicación | 3/hora por IP + 1 abierto por listing e IP |
-| Revelar teléfono/email | 20/hora por IP |
+| Revelar teléfono/WhatsApp | 20/hora por IP |
+| Enviar mensaje al vendedor (relay, Phase 11) | 5/hora por IP + 3/día por publicación e IP |
 | Página de confirmación desde email | 30/hora por usuario |
 | Búsqueda pública | 60/min por IP (evita scraping agresivo) |
 | Subida de imágenes | 30/hora por usuario |
@@ -66,7 +67,7 @@ Cubierto por Livewire y por `@csrf` en formularios clásicos. No existe ninguna 
 
 ## Spam y bots
 
-- Honeypot + tiempo mínimo de envío en reporte y registro. Phase 10: en el registro, campo oculto `website` y `form_opened_at` comprobados en `CreateNewUser::rejectBots()` (`avytra.registration.min_seconds_to_submit`); la respuesta es un error de validación genérico sobre el email. Emails con `email:rfc,dns` solo en producción (`ProfileValidationRules`, `AdminUserForm`).
+- Honeypot + tiempo mínimo de envío en reporte, registro y formulario relay (Phase 11: `avytra.contact.request_min_seconds_to_submit`; los bots reciben la misma confirmación y no se guarda nada). El relay nunca envía correo al remitente, así que no puede usarse para hacer llegar mensajes a terceros. Phase 10: en el registro, campo oculto `website` y `form_opened_at` comprobados en `CreateNewUser::rejectBots()` (`avytra.registration.min_seconds_to_submit`); la respuesta es un error de validación genérico sobre el email. Emails con `email:rfc,dns` solo en producción (`ProfileValidationRules`, `AdminUserForm`).
 - Registro con verificación de email obligatoria para publicar (`verified` ya en rutas).
 - Publicaciones nuevas visibles en `/admin` (últimas 24 h) para revisión rápida posterior.
 - Sin CAPTCHA en el MVP; si aparece spam, se evalúa Turnstile (sin coste) con ADR.
@@ -89,7 +90,9 @@ Inventario de datos sensibles y dónde se decide su visibilidad:
 | Forma jurídica | `businesses.legal_form` | `show_legal_form` |
 | Web y redes | `businesses.website_url`, `online_profiles.social_profiles` | `website_visibility` |
 | Cifras económicas | `listings.asking_price*`, `listing_financial_metrics` | `price_disclosure`, `disclosure` por métrica |
-| Teléfono/email de contacto | `listings.contact_*` | Público (por definición), revelado tras clic |
+| Teléfono/WhatsApp de contacto | `listings.contact_phone`, `contact_whatsapp` | Público (por definición), revelado tras clic |
+| Email de contacto | `listings.contact_email` | Nunca público (Phase 11, ADR-019): buzón del formulario relay |
+| Datos del interesado (nombre, email, teléfono, mensaje) | `contact_requests` | Solo el propietario de la publicación (panel y email) y el superadmin (detalle admin). IP solo como hash |
 | Email y teléfono de la cuenta | `users` | Nunca públicos |
 | Identidad del vendedor | `users.name` | Nunca pública; solo `contact_name` de la publicación |
 | Visitas mensuales | `online_profiles` | `monthly_visits_disclosure` |

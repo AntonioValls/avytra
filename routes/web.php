@@ -50,6 +50,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('panel/publicaciones/{listing}/editar', 'pages::listings.wizard')->name('panel.listings.edit');
     // Target of the signed links in reminder emails (ADR-007): the signature is checked by the page itself.
     Route::livewire('panel/publicaciones/{listing}/confirmar', 'pages::listings.confirm')->middleware('throttle:confirmation')->name('panel.listings.confirm');
+
+    // Messages relayed from public listing pages (docs/12, ADR-019).
+    Route::livewire('panel/mensajes', 'pages::messages.index')->name('panel.messages.index');
 });
 
 require __DIR__.'/settings.php';

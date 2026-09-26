@@ -19,7 +19,8 @@
 | Publicación | Feature (Livewire wizard) | Validación por paso; validación "listo para publicar"; borrador persiste entre pasos; título/slug sugeridos |
 | Renovación y caducidad | Feature (comando + `travel`) | Avisos a día 45/55, pausa a 60, idempotencia, reset al confirmar, página de confirmación exige sesión y propiedad, firma caducada no actúa sola |
 | Visibilidad | Feature (HTTP) | Proyección pública no filtra datos privados por cada `LocationVisibility` y `Disclosure`; pausada = 404 anónimo / 200 propietario; vendida antigua = noindex; archivada = 410 |
-| Contacto | Feature | Canal coherente con preferencia; teléfono solo tras revelar; rate limit |
+| Contacto | Feature | Canal coherente con preferencia; teléfono solo tras revelar; email nunca; rate limit |
+| Relay de mensajes (Phase 11) | Feature | Envío al buzón correcto con `Reply-To`; prefill; bots descartados; limitador y tope diario; solo `published`; policy; página de mensajes y contador; tarjeta admin |
 | Filtros y búsqueda | Feature (Livewire) | Cada filtro esencial; paginación; orden; estado vacío |
 | Rutas públicas y SEO | Feature (HTTP) | Home, explorar, ficha, categoría, provincia, sitemap, robots, 301 de slug, JSON-LD único en body |
 | Acciones críticas Livewire | Feature | Pausar, reactivar, marcar vendida, archivar, confirmar desde panel; confirmaciones de modal |

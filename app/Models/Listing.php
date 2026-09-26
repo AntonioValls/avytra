@@ -193,6 +193,14 @@ class Listing extends Model
     }
 
     /**
+     * @return HasMany<ContactRequest, $this>
+     */
+    public function contactRequests(): HasMany
+    {
+        return $this->hasMany(ContactRequest::class);
+    }
+
+    /**
      * Listings whose business belongs to the user.
      *
      * @param  Builder<Listing>  $query
@@ -362,6 +370,20 @@ class Listing extends Model
     public function offeredOperationTypes(): array
     {
         return array_values($this->operationTypes->map(fn (ListingOperationType $row): OperationType => $row->operation_type)->all());
+    }
+
+    /**
+     * Where relayed messages go: the listing contact email or, failing that, the account
+     * email of the owner (docs/12, ADR-019).
+     */
+    public function contactInboxEmail(): string
+    {
+        return filled($this->contact_email) ? (string) $this->contact_email : $this->owner()->email;
+    }
+
+    public function contactInboxName(): string
+    {
+        return filled($this->contact_name) ? (string) $this->contact_name : $this->owner()->name;
     }
 
     /**

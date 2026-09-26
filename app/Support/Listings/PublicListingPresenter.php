@@ -31,8 +31,9 @@ use Illuminate\Support\Str;
  * It receives the Listing and exposes attributes already filtered by every visibility
  * setting: location_visibility, price_disclosure, disclosure per metric, website_visibility,
  * show_legal_form. Private coordinates, address (unless exact), postal code, legal name and
- * anything about the owner's account never come out of here. Phone, WhatsApp and email are
- * available only through sensitiveChannel(), which the contact box calls after a click.
+ * anything about the owner's account never come out of here. Phone and WhatsApp are
+ * available only through sensitiveChannel(), which the contact box calls after a click;
+ * the contact email never comes out at all (messages are relayed, ADR-019).
  */
 final class PublicListingPresenter
 {
@@ -649,7 +650,9 @@ final class PublicListingPresenter
     }
 
     /**
-     * Channels with a value, preferred first.
+     * Channels with a value, preferred first. The email channel is always present: it is
+     * relayed through the contact form and goes to the owner's inbox when the listing has
+     * no contact email (ADR-019).
      *
      * @return list<ContactMethod>
      */
@@ -657,7 +660,7 @@ final class PublicListingPresenter
     {
         $filled = array_values(array_filter(
             ContactMethod::cases(),
-            fn (ContactMethod $method): bool => filled($this->listing->getAttribute($method->channelColumn())),
+            fn (ContactMethod $method): bool => self::isRelayChannel($method) || filled($this->listing->getAttribute($method->channelColumn())),
         ));
 
         $preferred = $this->preferredContactMethod();
@@ -680,11 +683,19 @@ final class PublicListingPresenter
     }
 
     /**
-     * Phone, WhatsApp and email are revealed only after a click (docs/12).
+     * Phone and WhatsApp are revealed only after a click (docs/12).
      */
     public static function isSensitiveChannel(ContactMethod $method): bool
     {
-        return in_array($method, [ContactMethod::Phone, ContactMethod::Whatsapp, ContactMethod::Email], true);
+        return in_array($method, [ContactMethod::Phone, ContactMethod::Whatsapp], true);
+    }
+
+    /**
+     * The email is never printed: buyers write through the relay form (ADR-019).
+     */
+    public static function isRelayChannel(ContactMethod $method): bool
+    {
+        return $method === ContactMethod::Email;
     }
 
     /**
@@ -692,7 +703,7 @@ final class PublicListingPresenter
      */
     public function publicChannel(ContactMethod $method): ?string
     {
-        if (self::isSensitiveChannel($method)) {
+        if (self::isSensitiveChannel($method) || self::isRelayChannel($method)) {
             return null;
         }
 
@@ -702,7 +713,7 @@ final class PublicListingPresenter
     }
 
     /**
-     * Value of phone, WhatsApp or email. Callers must have applied the reveal rate limit.
+     * Value of phone or WhatsApp. Callers must have applied the reveal rate limit.
      */
     public function sensitiveChannel(ContactMethod $method): ?string
     {

@@ -2,9 +2,9 @@
 
 ## Current phase
 
-**Phase 10 — Endurecimiento y lanzamiento: la parte de código está implementada y verificada (tests y navegador). La fase se cierra con el lanzamiento, que depende de tareas del propietario (checklist abajo).** Las 11 fases del plan (0 a 10) tienen su código hecho; lo que queda es operativo: textos legales, proveedor de email, staging y despliegue.
+**Phase 11 — Formulario de contacto relay: implementada y verificada (tests y navegador). Pendiente de revisión del propietario.** La primera mejora del roadmap convertida en fase (ADR-019): el email de contacto deja de mostrarse en público y los interesados escriben desde un formulario; el vendedor recibe el mensaje por email (con `Reply-To`) y en `/panel/mensajes`.
 
-Phase 9 se dio por aprobada el 2026-09-26 al pedir el propietario seguir con Phase 10. Phase 8 se dio por aprobada el 2026-09-26 al pedir seguir con Phase 9.
+Phase 10 sigue pendiente solo del lanzamiento (checklist abajo, tareas del propietario). Phase 11 se eligió el 2026-09-26 entre las mejoras de `docs/21` al pedir el propietario "la fase 11"; el diseño se aprobó antes de escribir código. Phase 9 se dio por aprobada el 2026-09-26 al pedir el propietario seguir con Phase 10. Phase 8 se dio por aprobada el 2026-09-26 al pedir seguir con Phase 9.
 
 ## Checklist de lanzamiento (Phase 10)
 
@@ -64,16 +64,22 @@ Phase 9 se dio por aprobada el 2026-09-26 al pedir el propietario seguir con Pha
 - `Sitemap` + `SitemapController` (`/sitemap.xml`, caché olvidada en cada transición y cambio de URL), `RobotsController` (`/robots.txt` con `app.url`), middleware `explore-redirects` (301 de `?sector=`/`?provincia=`), `ItemList` + `BreadcrumbList` en páginas de sector/provincia/online, `Organization` en la home, `og:image:width/height` y `twitter:*`, descripciones de páginas legales y de provincia, `noindex` en panel/admin/auth, textos reales de sectores en `CategorySeeder`. Detalle en `CHANGELOG.md` y `docs/15`.
 - Verificado en el navegador integrado: `/robots.txt` y `/sitemap.xml` servidos por ruta; `/empresas?sector=…&tipo=online` redirige 301 a `/empresas/categoria/…?tipo=online`; página de sector con descripción real, un `ItemList` y un `BreadcrumbList` en `<body>` y ninguno en `<head>`.
 
+### Phase 11 — Formulario de contacto relay (2026-09-26)
+- `contact_requests` + `ContactRequest` + `ContactRequestPolicy`; Actions `SubmitContactRequest` y `MarkContactRequestAsRead`; notificación `ContactRequestReceived` (bajo demanda a `contact_email` o al email de la cuenta, `Reply-To` del interesado, fallo registrado); "Enviar mensaje" en la ficha en lugar de "Mostrar email" con honeypot, tiempo mínimo, limitador `contact-request` y tope diario; `/panel/mensajes` con contador en la barra lateral y aviso en el inicio; tarjeta admin y contador de no entregados; `IpHash`; ADR-019. Detalle en `CHANGELOG.md` y `docs/12`.
+- Verificado en el navegador integrado con el usuario sembrado: ficha con "Enviar mensaje" y sin "Mostrar email" ni email en el HTML; modal con nombre y email prerrellenados; envío → toast "Mensaje enviado"; email en el log con `Reply-To: Test User <test@example.com>` tras `queue:work`; `/panel/mensajes` con el mensaje, badge "Nuevo" y contador "1" en la barra lateral; al abrirlo se marca leído y el contador desaparece; `mailto:` de respuesta con asunto; tarjeta "Mensajes recibidos" en `/admin/publicaciones/1` y "Mensajes no entregados" en `/admin`; móvil sin scroll horizontal (la lista se oculta al abrir un mensaje). Sin errores de consola.
+
 ### Phase 10 — Endurecimiento y lanzamiento (2026-09-26, código)
 - Middlewares `AddSecurityHeaders` y `ThrottleRegistration`; honeypot y tiempo mínimo en el registro; `email:rfc,dns` en producción; `SchedulerHeartbeat` con aviso en el resumen operativo; aviso de 2FA al superadmin; página `errors/503`; Blaze opt-in; auditorías en CI; `docs/23-deployment.md`; ADR-018. Detalle en `CHANGELOG.md`.
 - Verificado en el navegador integrado: página de mantenimiento real (`artisan down/up`), avisos del resumen admin, cabeceras de seguridad en la respuesta, pasada de accesibilidad en la home.
 
 ## In progress
 
-- Nada de código. Lanzamiento pendiente de las tareas del propietario del checklist.
+- Nada de código. Phase 11 espera la revisión del propietario; el lanzamiento, las tareas del checklist.
 
 ## Next
 
+- Revisión del propietario de Phase 11. Para probar en local: abrir una ficha publicada → "Enviar mensaje"; con `QUEUE_CONNECTION=database` el email sale con `php artisan queue:work` y con `MAIL_MAILER=log` queda en `storage/logs/laravel.log`; `/panel/mensajes` con la cuenta propietaria; `/admin/publicaciones/{id}` y `/admin`. El mensaje de prueba enviado durante la verificación (de `test@example.com` a la publicación 1) puede borrarse de `contact_requests`.
+- Siguiente fase: elegir la próxima mejora de `docs/21` (candidatas naturales: estadísticas del anuncio, que ya cuenta con `contact_requests`; favoritos; verificación de empresas).
 - Propietario: textos legales, proveedor de email y prueba en clientes reales, servidor de staging con `docs/23` (worker, cron, `APP_URL`, `AVYTRA_LOCATION_SALT`, `AVYTRA_SUPPORT_EMAIL`), smoke test y despliegue. Tras el lanzamiento, cada mejora del roadmap (`docs/21`) se convierte en una fase numerada.
 - Revisión del propietario de Phase 9. Validación manual pendiente con la prueba de resultados enriquecidos de Google (ficha, sector y home) cuando el sitio esté en un dominio público; en local: `/robots.txt`, `/sitemap.xml`, `/empresas/categoria/hosteleria-y-restauracion` (ver el JSON-LD al final del `<body>`). Las categorías locales ya se re-sembraron con las descripciones (`php artisan db:seed --class=CategorySeeder`).
 - Revisión del propietario de Phase 8. Para probar en local: `/admin/usuarios` → "Nuevo usuario" (sin `AVYTRA_SUPPORT_EMAIL` el email es obligatorio; con él, dejarlo vacío crea el alias `local+nombre@dominio`), luego "Nueva empresa para este usuario" y "Nueva publicación para este usuario"; `/admin/auditoria` para ver el rastro; Ctrl+K desde cualquier página admin. El email de contraseña sale por la cola (`php artisan queue:work`) al log con `MAIL_MAILER=log`. La cuenta "Prueba Asistida" (`prueba.asistida@example.com`) se creó durante la verificación y puede borrarse.
@@ -82,6 +88,12 @@ Phase 9 se dio por aprobada el 2026-09-26 al pedir el propietario seguir con Pha
 ## Blockers
 
 - Ninguno en código. El lanzamiento espera las tareas del propietario del checklist.
+- Notas aceptadas de Phase 11:
+  - "Enviar mensaje" aparece en toda publicación `published` aunque no tenga `contact_email`: el buzón de reserva es el email de la cuenta del propietario (`Listing::contactInboxEmail()`), igual que en los recordatorios. En vendidas o pausadas la acción responde 404.
+  - El remitente nunca recibe correo (ni copia ni confirmación): evita usar el relay para escribir a terceros. Su email se muestra al vendedor en el panel y como `Reply-To`.
+  - La notificación es bajo demanda (`Notification::route('mail', …)`) porque el buzón puede no ser un usuario; `Notification::fake()` la comprueba con `assertSentOnDemand`. El fallo de entrega se marca en la fila (`delivery_failed_at`), no en `listing_events`.
+  - Los tests que comparan textos con plural usan `trans_choice()` con la misma clave que la vista; `__()` sobre una mitad de la clave no encuentra la traducción.
+  - Observación fuera de alcance: el pie de `flux:pagination` ("Showing 1 to 1 of 1 results") sale en inglés en todas las páginas paginadas del panel, no solo en mensajes.
 - Notas aceptadas de Phase 10:
   - Blaze solo compila `listing-card`, `price`, `freshness-badge`, `listing-status-badge` y `empty-state`: compilar toda la carpeta de componentes rompía `auth-header` (props sin valor por defecto con una variable homónima en el ámbito del padre). Tras `view:clear`, la primera petición puede fallar una vez en Windows mientras Blaze escribe la vista compilada.
   - El limitador de registro va en un middleware del grupo `web` porque modificar la ruta de Fortify al arrancar no funciona (las búsquedas por nombre se refrescan después) ni sobreviviría a `route:cache`.
@@ -120,8 +132,9 @@ Ver `docs/DECISIONS.md` (ADR-001…017; ADR-006 aceptado con resultado). Decisio
 
 ## Last tests executed
 
-- 2026-09-26 — `composer test` (Pint + Larastan nivel 7 + Pest): **501 tests, todo en verde** (495 de Phase 9 más 6 nuevos). Nuevos: `Security/HardeningTest`.
+- 2026-09-26 — `composer test` (Pint + Larastan nivel 7 + Pest): **527 tests, todo en verde** (501 de Phase 10 más 26 nuevos). Nuevos: `Contact/*` (4 archivos) y `Policies/ContactRequestPolicyTest`.
+- 2026-09-26 — Phase 10: 501 tests en verde.
 
 ## Last updated
 
-2026-09-26 — Phase 10: código implementado y verificado; lanzamiento pendiente del checklist del propietario.
+2026-09-26 — Phase 11 implementada y verificada; pendiente de revisión del propietario. Lanzamiento (Phase 10) pendiente del checklist.

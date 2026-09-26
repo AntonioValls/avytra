@@ -192,6 +192,17 @@ Cada fase es pequeña, verificable y se ejecuta una por una. Ninguna fase empiez
 
 ---
 
+## Phase 11 — Formulario de contacto relay
+
+**Objetivo:** que los interesados escriban al vendedor sin que el email de contacto se publique (ADR-019).
+**Dependencias:** Phase 10 (lanzamiento).
+
+**Tareas:** tabla `contact_requests` y modelo `ContactRequest` (`#[Fillable]` solo en los campos del remitente); `ContactRequestPolicy`; Actions `SubmitContactRequest` y `MarkContactRequestAsRead`; notificación en cola `ContactRequestReceived` (bajo demanda a `contact_email` o al email de la cuenta, `Reply-To` del interesado, `failed()` marca el fallo); "Enviar mensaje" en la ficha en lugar de "Mostrar email" (modal con honeypot, tiempo mínimo, limitador `contact-request` y tope diario por publicación); `/panel/mensajes` con marcar como leído, contador de no leídos en la barra lateral y aviso en el inicio del panel; tarjeta de mensajes en el detalle admin de la publicación y contador de no entregados en el resumen operativo; textos del paso 6 del wizard; documentación (`07`, `08`, `09`, `12`, `16`, `18`, `21`).
+**Criterios de aceptación:** el email de contacto no aparece en ningún HTML público; un visitante envía un mensaje y el buzón correcto lo recibe con `Reply-To`; los bots y el exceso se descartan sin crear registros; el propietario ve solo sus mensajes; `composer test` pasa.
+**Terminado cuando:** DoD.
+
+---
+
 ## Fuera de fases (post-lanzamiento)
 
 Ver [21-future-roadmap.md](21-future-roadmap.md). Cada mejora futura se convertirá en una fase numerada (11, 12…) con el mismo formato antes de empezar.

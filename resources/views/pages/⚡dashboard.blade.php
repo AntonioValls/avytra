@@ -65,6 +65,12 @@ new class extends Component {
         return $this->listings->where('status', ListingStatus::Draft)->values();
     }
 
+    #[Computed]
+    public function unreadMessagesCount(): int
+    {
+        return $this->actor()->unreadContactRequestsCount();
+    }
+
     /**
      * @return Collection<int, Business>
      */
@@ -142,8 +148,17 @@ new class extends Component {
         </x-empty-state>
     @else
         {{-- Actionable notices --}}
-        @if ($this->needingConfirmation->isNotEmpty() || $this->expired->isNotEmpty() || $this->drafts->isNotEmpty())
+        @if ($this->unreadMessagesCount > 0 || $this->needingConfirmation->isNotEmpty() || $this->expired->isNotEmpty() || $this->drafts->isNotEmpty())
             <section class="flex flex-col gap-3">
+                @if ($this->unreadMessagesCount > 0)
+                    <flux:callout icon="envelope" variant="secondary">
+                        <flux:callout.heading>{{ trans_choice('You have one unread message.|You have :count unread messages.', $this->unreadMessagesCount, ['count' => $this->unreadMessagesCount]) }}</flux:callout.heading>
+                        <flux:callout.text>{{ __('Buyers are waiting for an answer. Reply from your email or from the messages page.') }}</flux:callout.text>
+                        <x-slot name="actions">
+                            <flux:button size="sm" variant="primary" icon="envelope-open" :href="route('panel.messages.index')" wire:navigate>{{ __('See messages') }}</flux:button>
+                        </x-slot>
+                    </flux:callout>
+                @endif
                 @foreach ($this->needingConfirmation as $listing)
                     <flux:callout icon="clock" variant="warning" wire:key="notice-confirm-{{ $listing->id }}">
                         <flux:callout.heading>{{ __('“:title” needs confirmation.', ['title' => $listing->title]) }}</flux:callout.heading>

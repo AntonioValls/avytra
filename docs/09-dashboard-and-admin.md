@@ -4,13 +4,13 @@
 
 Layout: el `layouts/app` con sidebar del starter kit, rebrandeado (ver [14-ui-design-system.md](14-ui-design-system.md)). La ruta `/dashboard` pasa a `/panel` manteniendo el nombre de ruta `dashboard`.
 
-Navegación lateral: Inicio · Mis empresas · Mis publicaciones · Ajustes. (Superadmin ve además "Administración".)
+Navegación lateral: Inicio · Mis empresas · Mis publicaciones · Mensajes (con contador de no leídos, Phase 11) · Ajustes. (Superadmin ve además "Administración".)
 
 ### Inicio del panel
 
 No es un dashboard de métricas. Responde a tres preguntas: qué tengo publicado, si está actualizado, qué debo hacer.
 
-1. **Avisos accionables** (`flux:callout`): "Tu publicación *Traspaso panadería…* necesita confirmación. [Sigue disponible]". "Tu publicación se pausó por falta de confirmación. [Reactivar]". "Tienes un borrador sin terminar. [Continuar]".
+1. **Avisos accionables** (`flux:callout`): "Tienes N mensajes sin leer. [Ver mensajes]" (Phase 11). "Tu publicación *Traspaso panadería…* necesita confirmación. [Sigue disponible]". "Tu publicación se pausó por falta de confirmación. [Reactivar]". "Tienes un borrador sin terminar. [Continuar]".
 2. **Mis publicaciones** (lista compacta con badge de estado y acciones).
 3. **Mis empresas** (tarjetas).
 4. Estado vacío para usuarios nuevos: "Aún no tienes empresas. [Crear mi primera empresa]" con explicación de 3 pasos.
@@ -47,6 +47,10 @@ Confirmaciones destructivas (archivar, marcar vendida, eliminar borrador) con `f
 
 Implementación (Phase 3): `pages::listings.index` con un único modal de confirmación parametrizado por acción y el parcial `partials/listing-actions` compartido por la tabla (escritorio) y las tarjetas (móvil). Desde Phase 4 las rutas del panel de publicaciones se llaman `panel.listings.index|create|edit` (el nombre `listings.index` pertenece a explorar, docs/08).
 
+### Mensajes (`/panel/mensajes`, Phase 11)
+
+Bandeja de los mensajes enviados desde las fichas públicas de las publicaciones del usuario (docs/12, ADR-019): lista con remitente, publicación, fecha y extracto, no leídos primero y marcados "Nuevo"; al abrir uno se marca leído (`MarkContactRequestAsRead`) y se muestra completo con email, teléfono opcional, botón "Responder por email" (`mailto:` con asunto "Re: {título} — AVYTRA") y "Llamar". Un mensaje cuyo email no pudo entregarse lleva un aviso: sigue legible aquí. En móvil la lista se oculta mientras un mensaje está abierto. Implementación: `pages::messages.index`, `ContactRequest::receivedBy()`, `User::unreadContactRequestsCount()` para el contador de la barra lateral y del inicio.
+
 ## Wizard de publicación (`/panel/publicaciones/nueva`, `/panel/publicaciones/{listing}/editar`)
 
 Un único componente Livewire de página (`pages::listings.wizard`) con propiedad `step`, Form Objects por paso y persistencia en base de datos **al completar cada paso** (el `Listing` se crea como `draft` en el paso 1; la `Business` se crea o selecciona en el paso 1). Así "abandonar y continuar" no requiere sesión ni estado en memoria.
@@ -81,10 +85,10 @@ Mismo layout de app con una sección de navegación "Administración" visible so
 
 | Ruta | Contenido |
 |---|---|
-| `/admin` | Resumen operativo: publicaciones que necesitan confirmación, pausadas automáticamente en los últimos 30 días (`avytra.freshness.expired_review_days`), avisos no entregados, reportes abiertos, últimas publicaciones, últimos usuarios. Números y listas, no gráficos. Phase 7: `pages::admin.index`; cada tarjeta enlaza al listado filtrado (`condicion=needs_confirmation|expired_recently|failed_reminder`). |
+| `/admin` | Resumen operativo: publicaciones que necesitan confirmación, pausadas automáticamente en los últimos 30 días (`avytra.freshness.expired_review_days`), avisos no entregados, reportes abiertos, mensajes no entregados (Phase 11), últimas publicaciones, últimos usuarios. Números y listas, no gráficos. Phase 7: `pages::admin.index`; cada tarjeta enlaza al listado filtrado (`condicion=needs_confirmation|expired_recently|failed_reminder`). |
 | `/admin/usuarios` | Tabla con búsqueda; ver detalle (empresas y publicaciones); crear usuario en nombre de otra persona (nombre, email, teléfono; contraseña aleatoria; opción de enviar email de "establece tu contraseña"). Phase 8: `pages::admin.users.index` (`q`, `condicion=assisted|superadmin`) y `pages::admin.users.show` (edición auditada, reenvío del enlace de contraseña, accesos directos con `?propietario=ID`). |
 | `/admin/empresas` | Tabla con filtros (propietario, tipo, sector); crear/editar con selector de propietario; cambiar propietario (con confirmación y audit). |
-| `/admin/publicaciones` | Tabla con filtros por texto, estado y condición (necesita confirmación, publicadas en 24 h). El detalle `/admin/publicaciones/{listing}` concentra las acciones: publicar, pausar, reactivar, confirmar en nombre del propietario, marcar vendida, archivar, suspender (con motivo), levantar suspensión, cambiar URL (con redirección), reenviar un aviso no entregado (Phase 7: callout con el fallo y botón "Reenviar"). Timeline de eventos (`flux:timeline` Pro). Phase 3. |
+| `/admin/publicaciones` | Tabla con filtros por texto, estado y condición (necesita confirmación, publicadas en 24 h). El detalle `/admin/publicaciones/{listing}` concentra las acciones: publicar, pausar, reactivar, confirmar en nombre del propietario, marcar vendida, archivar, suspender (con motivo), levantar suspensión, cambiar URL (con redirección), reenviar un aviso no entregado (Phase 7: callout con el fallo y botón "Reenviar"). Timeline de eventos (`flux:timeline` Pro). Phase 3. Phase 11: tarjeta "Mensajes recibidos" (solo lectura, con leído/no leído y el error de entrega si lo hubo). |
 | `/admin/reportes` | Bandeja de reportes: abrir, ver publicación, resolver (con acción rápida: pausar/suspender/archivar) o descartar. Phase 4: `pages::admin.reports.index`, filtro por estado en la URL (`estado`), modal de resolución con notas (usadas como motivo si se suspende) y audit `listing_report.resolved|dismissed`. |
 | `/admin/auditoria` | Audit log filtrable por actor, acción, recurso. Phase 8: `pages::admin.audit.index` (`actor`, `accion`, `recurso=user|business|listing|report`, `usuario` = entradas que afectan a una cuenta), etiquetas de `App\Support\Audit\AuditActions`, cambios desplegables. |
 

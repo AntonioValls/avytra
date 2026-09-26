@@ -74,6 +74,10 @@
                         <flux:sidebar.item icon="document-text" :href="route('panel.listings.index')" :current="request()->routeIs('panel.listings.*')" wire:navigate>
                             {{ __('My listings') }}
                         </flux:sidebar.item>
+                        @php $unreadMessages = $user->unreadContactRequestsCount(); @endphp
+                        <flux:sidebar.item icon="envelope" :href="route('panel.messages.index')" :current="request()->routeIs('panel.messages.*')" :badge="$unreadMessages > 0 ? $unreadMessages : null" badge-color="lime" wire:navigate>
+                            {{ __('Messages') }}
+                        </flux:sidebar.item>
                     @endif
                 </flux:sidebar.group>
             </flux:sidebar.nav>

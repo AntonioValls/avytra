@@ -147,7 +147,7 @@ test('social profiles follow the website visibility', function () {
     expect(PublicListingPresenter::for($listing->fresh())->onlineProfile()['social_profiles'])->toHaveCount(1);
 });
 
-test('phone, WhatsApp and email are sensitive channels; website, form and free text are not', function () {
+test('phone and WhatsApp are sensitive channels, email is relayed and never returned, the rest are public', function () {
     $listing = Listing::factory()->published()->create([
         'preferred_contact_method' => ContactMethod::Phone,
         'contact_phone' => '+34600111222',
@@ -162,7 +162,21 @@ test('phone, WhatsApp and email are sensitive channels; website, form and free t
         ->and($presenter->publicChannel(ContactMethod::Phone))->toBeNull()
         ->and($presenter->publicChannel(ContactMethod::Website))->toBe('https://tienda.example')
         ->and($presenter->sensitiveChannel(ContactMethod::Phone))->toBe('+34600111222')
-        ->and($presenter->sensitiveChannel(ContactMethod::Website))->toBeNull();
+        ->and($presenter->sensitiveChannel(ContactMethod::Website))->toBeNull()
+        ->and($presenter->publicChannel(ContactMethod::Email))->toBeNull()
+        ->and($presenter->sensitiveChannel(ContactMethod::Email))->toBeNull()
+        ->and(PublicListingPresenter::isSensitiveChannel(ContactMethod::Email))->toBeFalse()
+        ->and(PublicListingPresenter::isRelayChannel(ContactMethod::Email))->toBeTrue();
+});
+
+test('the relay channel is offered even when the listing has no contact email', function () {
+    $listing = Listing::factory()->published()->create([
+        'preferred_contact_method' => ContactMethod::Phone,
+        'contact_phone' => '+34600111222',
+        'contact_email' => null,
+    ]);
+
+    expect(PublicListingPresenter::for($listing)->contactMethods())->toBe([ContactMethod::Phone, ContactMethod::Email]);
 });
 
 test('operation types list the primary one first and the stake only for partial operations', function () {

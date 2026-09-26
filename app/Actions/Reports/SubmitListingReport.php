@@ -8,6 +8,7 @@ use App\Models\Listing;
 use App\Models\ListingReport;
 use App\Models\User;
 use App\Notifications\ListingReportReceived;
+use App\Support\Security\IpHash;
 use Illuminate\Support\Facades\Notification;
 
 /**
@@ -60,10 +61,6 @@ class SubmitListingReport
 
     public static function hashIp(?string $ip): ?string
     {
-        if ($ip === null || $ip === '') {
-            return null;
-        }
-
-        return hash('sha256', $ip.'|'.config('app.key'));
+        return IpHash::make($ip);
     }
 }

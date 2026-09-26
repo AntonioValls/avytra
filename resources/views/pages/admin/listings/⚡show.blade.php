@@ -55,7 +55,7 @@ new class extends Component {
     public function listing(): Listing
     {
         return Listing::query()
-            ->with(['business.owner', 'business.category', 'business.location.province', 'business.location.municipality', 'operationTypes', 'financialMetrics', 'events.actor', 'events.onBehalfOf', 'slugRedirects'])
+            ->with(['business.owner', 'business.category', 'business.location.province', 'business.location.municipality', 'operationTypes', 'financialMetrics', 'events.actor', 'events.onBehalfOf', 'slugRedirects', 'contactRequests'])
             ->findOrFail($this->listingId);
     }
 
@@ -356,6 +356,32 @@ new class extends Component {
                     @endif
                 </flux:card>
             @endif
+
+            {{-- Relayed messages (ADR-019): read-only for the superadmin; the owner answers from their panel. --}}
+            <flux:card class="flex flex-col gap-4">
+                <flux:heading size="lg" level="2">{{ __('Messages received') }} <span class="font-normal text-slate">· {{ $listing->contactRequests->count() }}</span></flux:heading>
+                @if ($listing->contactRequests->isEmpty())
+                    <flux:text size="sm">{{ __('Nobody has written from this listing yet.') }}</flux:text>
+                @else
+                    <ul class="flex flex-col divide-y divide-zinc-100 dark:divide-zinc-800">
+                        @foreach ($listing->contactRequests->sortByDesc('id') as $request)
+                            <li class="flex flex-col gap-1 py-2 text-sm" wire:key="request-{{ $request->id }}">
+                                <div class="flex items-center justify-between gap-3">
+                                    <span class="truncate font-semibold">{{ $request->sender_name }}</span>
+                                    <span class="shrink-0 text-xs text-slate">{{ $request->created_at?->translatedFormat('j M Y, H:i') }}</span>
+                                </div>
+                                <span class="line-clamp-2 text-slate">{{ $request->message }}</span>
+                                <div class="flex flex-wrap gap-1">
+                                    <flux:badge size="sm" :color="$request->isRead() ? 'zinc' : 'lime'">{{ $request->isRead() ? __('Read') : __('Unread') }}</flux:badge>
+                                    @unless ($request->wasDelivered())
+                                        <flux:badge size="sm" color="amber" icon="exclamation-triangle">{{ __('Not delivered: :error', ['error' => $request->delivery_error]) }}</flux:badge>
+                                    @endunless
+                                </div>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </flux:card>
         </div>
     </div>
 

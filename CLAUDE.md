@@ -25,7 +25,7 @@ PHP 8.4 · Laravel 13 · Livewire 4 (componentes single-file `⚡nombre.blade.ph
 
 - **Business ≠ Listing.** `Business` es la empresa real (propiedad de un `User`); `Listing` es la publicación (operación, precio, contacto, estado, vigencia). Una empresa tiene histórico de publicaciones y como máximo una no terminada. Ver `docs/04-domain-model.md`.
 - **Tres tipos de negocio** desde el principio: `physical` (con `Location`), `online` (con `OnlineProfile`), `hybrid` (ambos).
-- **Policies son la única fuente de autorización.** `BusinessPolicy`, `ListingPolicy`, `UserPolicy`, `ListingReportPolicy`, con `before()` para superadmin. Cada acción Livewire/controlador autoriza al inicio. Prohibidas las comprobaciones de rol dispersas por componentes o Blade.
+- **Policies son la única fuente de autorización.** `BusinessPolicy`, `ListingPolicy`, `UserPolicy`, `ListingReportPolicy`, `ContactRequestPolicy`, con `before()` para superadmin. Cada acción Livewire/controlador autoriza al inicio. Prohibidas las comprobaciones de rol dispersas por componentes o Blade.
 - **Propiedad y autoría separadas:** `owner_user_id` (propietario), `created_by_user_id`, `updated_by_user_id` (trait `TracksAuthorship`). El superadmin puede crear/editar recursos de cualquier usuario sin convertirse en propietario y con trazabilidad en `audit_logs` y `listing_events`. Sin impersonación.
 - **Estados explícitos con enums PHP** (`ListingStatus` con tabla de transiciones) y un Action por transición en `App\Actions\Listings\*`. Los Actions deciden *si el estado lo permite*; las Policies deciden *quién puede*. Ver `docs/06-listing-lifecycle.md`.
 - **Configuración central en `config/avytra.php`** (umbrales de vigencia, mapa, geocodificación, límites, soporte). Prohibidos los números mágicos.
@@ -47,7 +47,7 @@ PHP 8.4 · Laravel 13 · Livewire 4 (componentes single-file `⚡nombre.blade.ph
 
 - Nada es público por existir en base de datos. Visibilidad modelada explícitamente: `location_visibility`, `price_disclosure`, `disclosure` por métrica, `website_visibility`, `show_legal_form`. Toda salida pública (ficha, tarjeta, JSON-LD, sitemap, mapa) pasa por el presentador público del listing; prohibido pasar modelos completos a vistas públicas o serializarlos.
 - Coordenadas reales, dirección, código postal, razón social, email/teléfono/nombre de la cuenta: nunca en HTML ni JSON público. El mapa usa solo `public_latitude/public_longitude/public_radius_m`.
-- Contacto público = únicamente los campos `contact_*` de la publicación; teléfono/email revelados tras clic con rate limit.
+- Contacto público = únicamente los campos `contact_*` de la publicación; teléfono/WhatsApp revelados tras clic con rate limit. El email nunca se muestra: los interesados escriben por el formulario relay (`contact_requests`, ADR-019).
 - `#[Fillable]` explícito; campos de ciclo de vida y de propiedad fuera de `fillable` (solo Actions los escriben). `#[Locked]` en IDs de Livewire. Re-autorizar en cada acción, no solo en `mount`.
 - Rate limiting nombrado en registro, reportes, revelación de contacto, búsqueda, uploads, enlaces firmados, geocodificación.
 - Uploads: solo jpg/png/webp, tamaño y dimensiones validados, reencodificación a WebP (sin EXIF); el original nunca se enlaza públicamente.

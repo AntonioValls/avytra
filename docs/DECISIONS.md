@@ -294,3 +294,21 @@ No se envía CSP en el MVP. El middleware `App\Http\Middleware\AddSecurityHeader
 
 ### Consequences
 Protección frente a clickjacking, sniffing de tipos y fugas de referrer sin riesgo de romper la interfaz. Sin CSP, la defensa frente a XSS sigue siendo el escapado sistemático de salida (`{{ }}`, descripciones en texto plano, sin editor HTML). Si se incorpora un editor o contenido HTML de usuario, la CSP pasa a ser obligatoria y se revisará este ADR.
+
+## ADR-019 — Formulario de contacto relay en lugar de la revelación del email
+
+Status: Accepted (2026-09-26, Phase 11)
+
+### Context
+Desde Phase 4 el email de contacto de una publicación se imprime tras un clic ("Mostrar email") bajo un limitador por IP. Es una barrera débil frente a la recolección de direcciones y expone un dato personal en HTML público. docs/12 y docs/21 dejaron en el roadmap la alternativa: AVYTRA reenvía el mensaje del interesado al vendedor sin publicar su dirección, sentando además la base de las estadísticas de contacto. Con el MVP lanzado, el propietario eligió esta mejora como Phase 11.
+
+### Decision
+- El canal email deja de revelarse en público. Donde había "Mostrar email" aparece "Enviar mensaje", que abre un formulario (nombre, email, teléfono opcional, mensaje). Teléfono y WhatsApp mantienen la revelación tras clic.
+- "Enviar mensaje" está disponible en toda publicación `published`, tenga o no `contact_email`: el destinatario es `contact_email` y, si falta, el email de la cuenta del propietario (el mismo criterio que los recordatorios de vigencia, docs/13). Solo se envía en publicaciones publicadas; no en vendidas.
+- Cada mensaje se guarda en `contact_requests` y se envía por email en cola (`ContactRequestReceived`, notificación bajo demanda al buzón resuelto) con `Reply-To` del interesado. El propietario responde desde su correo; su dirección solo se conoce cuando decide contestar.
+- No se envía copia ni confirmación al remitente: evitaría que el relay sirva para enviar correo a terceros.
+- Anti-spam con el mismo patrón que los reportes: honeypot, tiempo mínimo, limitador nombrado `contact-request` por IP y hora, y tope diario por publicación e IP (`config/avytra.php` → `contact.*`). Los bots reciben la misma confirmación y el mensaje se descarta.
+- El propietario ve sus mensajes en `/panel/mensajes` (`ContactRequestPolicy`: solo los de sus publicaciones) con contador de no leídos en la barra lateral y aviso en el inicio del panel. Si el email falla tras los reintentos, `failed()` marca `delivery_failed_at` y el mensaje sigue en el panel. El superadmin los ve, solo lectura, en el detalle de la publicación y el resumen operativo cuenta los no entregados.
+
+### Consequences
+El email de contacto ya no aparece en ningún HTML público; `PublicListingPresenter::sensitiveChannel()` no lo devuelve. Aparece un dato nuevo de terceros (remitentes) que solo ven el propietario de la publicación y el superadmin; docs/16 lo recoge. La regla de publicabilidad (`email` ⇒ `contact_email` relleno) no cambia. Mensajería interna, respuestas desde AVYTRA y estadísticas agregadas siguen en el roadmap; `contact_requests` es su base.

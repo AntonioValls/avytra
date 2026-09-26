@@ -10,9 +10,10 @@ use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 /**
- * "Contact the owner" block (docs/12). Phone, WhatsApp and email are absent from the initial
- * HTML and are printed only after "Show", within a per-IP rate limit. The values are never
- * stored in component state: they are read from the presenter at render time.
+ * "Contact the owner" block (docs/12). Phone and WhatsApp are absent from the initial HTML
+ * and are printed only after "Show", within a per-IP rate limit. The values are never
+ * stored in component state: they are read from the presenter at render time. The email is
+ * never printed: "Send a message" opens the relay form (ADR-019).
  */
 new class extends Component {
     #[Locked]
@@ -64,7 +65,7 @@ new class extends Component {
     }
 
     /**
-     * Prefilled subject and message for mail and WhatsApp links.
+     * Prefilled message for WhatsApp links.
      */
     private function intro(PublicListingPresenter $listing): string
     {
@@ -87,9 +88,10 @@ new class extends Component {
             $channels[] = [
                 'method' => $method,
                 'sensitive' => PublicListingPresenter::isSensitiveChannel($method),
+                'relay' => PublicListingPresenter::isRelayChannel($method),
                 'value' => $value,
                 'href' => $value === null ? null : match ($method) {
-                    ContactMethod::Email => 'mailto:'.$value.'?subject='.rawurlencode($this->intro($presenter)),
+                    ContactMethod::Email => null,
                     ContactMethod::Phone => 'tel:'.$value,
                     ContactMethod::Whatsapp => 'https://wa.me/'.preg_replace('/\D+/', '', $value).'?text='.rawurlencode($this->intro($presenter)),
                     ContactMethod::Website, ContactMethod::ExternalForm => $value,
@@ -118,7 +120,17 @@ new class extends Component {
         @foreach ($channels as $channel)
             @php $method = $channel['method']; @endphp
             <div wire:key="channel-{{ $method->value }}">
-                @if ($channel['sensitive'] && $channel['value'] === null)
+                @if ($channel['relay'])
+                    <flux:modal.trigger name="contact-request">
+                        <flux:button
+                            :variant="$loop->first ? 'primary' : 'outline'"
+                            icon="paper-airplane"
+                            class="w-full"
+                        >
+                            {{ __('Send a message') }}
+                        </flux:button>
+                    </flux:modal.trigger>
+                @elseif ($channel['sensitive'] && $channel['value'] === null)
                     <flux:button
                         :variant="$loop->first ? 'primary' : 'outline'"
                         :icon="$method->icon()"
@@ -126,7 +138,7 @@ new class extends Component {
                         wire:click="reveal"
                         wire:loading.attr="disabled"
                     >
-                        {{ match ($method) { \App\Enums\ContactMethod::Email => __('Show email'), \App\Enums\ContactMethod::Whatsapp => __('Show WhatsApp'), default => __('Show phone') } }}
+                        {{ $method === \App\Enums\ContactMethod::Whatsapp ? __('Show WhatsApp') : __('Show phone') }}
                     </flux:button>
                 @elseif ($method === \App\Enums\ContactMethod::Other)
                     <div class="flex items-start gap-2 rounded-md border border-zinc-200 p-3 text-sm">
@@ -157,4 +169,6 @@ new class extends Component {
     @endif
 
     <flux:text size="sm" class="text-slate">{{ __('When you get in touch, mention that you saw this listing on AVYTRA.') }}</flux:text>
+
+    <livewire:public.contact-request-form :listing-id="$listingId" />
 </flux:card>

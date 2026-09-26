@@ -34,10 +34,10 @@ app/
 ├── Models/
 │   └── ...                      User, Business, Listing, Location, OnlineProfile, Category, Region,
 │                                Province, Municipality, ListingFinancialMetric, ListingEvent,
-│                                ListingSlugRedirect, ListingReport, AuditLog
+│                                ListingSlugRedirect, ListingReport, ContactRequest, AuditLog
 ├── Notifications/               ListingFreshnessReminder, ListingExpired, ListingPublished,
-│                                ListingSuspended, ListingReportReceived, WelcomeOnBehalf
-├── Policies/                    BusinessPolicy, ListingPolicy, UserPolicy, ListingReportPolicy
+│                                ListingSuspended, ListingReportReceived, ContactRequestReceived, WelcomeOnBehalf
+├── Policies/                    BusinessPolicy, ListingPolicy, UserPolicy, ListingReportPolicy, ContactRequestPolicy
 ├── Providers/                   AppServiceProvider (+ rate limiters), FortifyServiceProvider
 ├── Services/
 │   └── Geocoding/               Geocoder (interface), GeocodingResult, NullGeocoder, NominatimGeocoder
@@ -45,6 +45,7 @@ app/
     ├── Listings/                PublicListingPresenter (proyección pública), ListingTitleSuggester
     ├── Location/                PublicPointDeriver (jitter determinista, centroides)
     ├── Seo/                     PageMeta, JsonLd builders
+    ├── Security/                IpHash (hash de IP con la clave de la app: reportes y relay)
     └── Audit/                   AuditLogger
 
 config/avytra.php                configuración central (vigencia, mapa, geocoding, soporte, límites)

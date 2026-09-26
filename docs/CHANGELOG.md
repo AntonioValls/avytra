@@ -2,6 +2,23 @@
 
 Formato: una sección por fase cerrada, con fecha. Cambios de documentación relevantes también se anotan.
 
+## [Phase 11] — 2026-09-26 — Formulario de contacto relay
+
+### Añadido
+- Tabla `contact_requests`, modelo `ContactRequest` (`#[Fillable]` solo en los campos del remitente; scopes `receivedBy`, `unread`, `undelivered`), factory con estados `forListing`, `from`, `read`, `undelivered`, y `ContactRequestPolicy` (`viewAny` para cualquier usuario, `view` y `markAsRead` para el propietario de la publicación, `before()` superadmin). ADR-019.
+- Actions `App\Actions\Contact\SubmitContactRequest` (guarda y envía; `sentToday()` para el tope diario) y `MarkContactRequestAsRead`. `Listing::contactRequests()`, `contactInboxEmail()` (`contact_email` o el email de la cuenta del propietario) y `contactInboxName()`.
+- Notificación en cola `ContactRequestReceived`, bajo demanda al buzón resuelto, con `Reply-To` del interesado y botón "Ver mis mensajes"; `failed()` marca `delivery_failed_at` y `delivery_error`. No se envía copia al remitente.
+- Ficha pública: "Enviar mensaje" sustituye a "Mostrar email" (`public.contact-request-form`, modal `contact-request` anidado en `public.contact-box`), presente en toda publicación `published` aunque no tenga `contact_email`. Honeypot, tiempo mínimo, limitador nombrado `contact-request` (por IP y hora) y tope diario por publicación e IP; con sesión, nombre y email prerrellenados.
+- `PublicListingPresenter::isRelayChannel()`; `isSensitiveChannel()` queda para teléfono y WhatsApp; `contactMethods()` incluye siempre el email; `publicChannel()` y `sensitiveChannel()` nunca lo devuelven.
+- Panel: página `/panel/mensajes` (`pages::messages.index`, ruta `panel.messages.index`) con no leídos primero, detalle con "Responder por email" (`mailto:` con asunto "Re: …") y aviso de email no entregado; entrada "Mensajes" con contador en la barra lateral (`User::unreadContactRequestsCount()`) y aviso "Tienes N mensajes sin leer" en el inicio del panel.
+- Admin: tarjeta "Mensajes recibidos" (solo lectura) en el detalle de la publicación y contador "Mensajes no entregados" en el resumen operativo.
+- `App\Support\Security\IpHash` (compartido por reportes y relay). `config/avytra.php` → `contact.request_rate_limit_per_hour`, `requests_per_listing_per_day`, `request_message_max_length`, `request_min_seconds_to_submit`.
+- Tests `Contact/SubmitContactRequestTest`, `Contact/ContactRequestFormTest`, `Contact/MessagesPageTest`, `Contact/AdminContactRequestsTest`, `Policies/ContactRequestPolicyTest`; ajustes en `Public/ListingShowTest` y `Support/PublicListingPresenterTest`. 44 cadenas nuevas en `lang/es.json`.
+
+### Cambiado
+- Textos del paso 6 del wizard: el email de contacto nunca se muestra; es el buzón de los mensajes.
+- Documentación: `CLAUDE.md`, docs 03, 07, 08, 09, 12, 16, 18, 19, 20 (sección Phase 11), 21, `DECISIONS.md` (ADR-019).
+
 ## [Phase 10] — 2026-09-26 — Endurecimiento y lanzamiento
 
 ### Añadido

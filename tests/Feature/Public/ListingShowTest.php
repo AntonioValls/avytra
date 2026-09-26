@@ -78,21 +78,22 @@ test('the public page never leaks private data of the listing, the location or t
         ->assertDontSee('38.271');
 });
 
-test('phone and email are absent from the initial HTML and appear only after revealing', function () {
+test('the phone is absent from the initial HTML and appears only after revealing; the email never does', function () {
     $listing = publishedListingWithPrivateData();
 
     $this->get(route('listings.show', $listing->slug))
         ->assertOk()
         ->assertDontSee('+34600111222')
         ->assertDontSee('contacto-publico@example.com')
-        ->assertSee(__('Show phone'));
+        ->assertSee(__('Show phone'))
+        ->assertSee(__('Send a message'));
 
     Livewire::test('public.contact-box', ['listingId' => $listing->id])
         ->assertDontSee('+34600111222')
         ->call('reveal')
         ->assertSet('revealed', true)
         ->assertSee('+34600111222')
-        ->assertSee('contacto-publico@example.com');
+        ->assertDontSee('contacto-publico@example.com');
 });
 
 test('revealing contact details is rate limited per IP', function () {
