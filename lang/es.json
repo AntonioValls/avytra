@@ -1048,5 +1048,14 @@
     "{1} One business for sale or transfer in the province of :province, with confirmed availability. Sectors: :sectors.|[2,*] :count businesses for sale or transfer in the province of :province, with confirmed availability. Sectors: :sectors.": "{1} Una empresa en venta o traspaso en la provincia de :province, con disponibilidad confirmada. Sectores: :sectors.|[2,*] :count empresas en venta o traspaso en la provincia de :province, con disponibilidad confirmada. Sectores: :sectors.",
     "Legal notice of AVYTRA: who runs the platform, what it offers and the responsibilities of the people who publish listings.": "Aviso legal de AVYTRA: quién gestiona la plataforma, qué ofrece y las responsabilidades de quienes publican.",
     "Privacy policy of AVYTRA: which data we store, what is never public and how to exercise your rights.": "Política de privacidad de AVYTRA: qué datos guardamos, qué nunca es público y cómo ejercer tus derechos.",
-    "Cookies policy of AVYTRA: only the technical cookies the site needs to work, no tracking.": "Política de cookies de AVYTRA: solo las cookies técnicas que el sitio necesita para funcionar, sin seguimiento."
+    "Cookies policy of AVYTRA: only the technical cookies the site needs to work, no tracking.": "Política de cookies de AVYTRA: solo las cookies técnicas que el sitio necesita para funcionar, sin seguimiento.",
+    "We could not create the account. Please try again.": "No hemos podido crear la cuenta. Inténtalo de nuevo.",
+    "Back in a moment": "Volvemos en un momento",
+    "We are updating AVYTRA. Listings and accounts are safe; the site will be available again shortly.": "Estamos actualizando AVYTRA. Las publicaciones y las cuentas están a salvo; el sitio volverá a estar disponible en breve.",
+    "The task scheduler is not running.": "El programador de tareas no está en marcha.",
+    "No heartbeat has been recorded yet.": "Todavía no se ha registrado ningún latido.",
+    "Last heartbeat: :time.": "Último latido: :time.",
+    "Without it, reminders are not sent and listings are not paused automatically. Check the cron entry for “php artisan schedule:run”.": "Sin él no se envían los avisos ni se pausan las publicaciones automáticamente. Revisa la entrada de cron de «php artisan schedule:run».",
+    "Protect the superadmin account with two-factor authentication.": "Protege la cuenta de superadministrador con autenticación en dos pasos.",
+    "This account can act on every listing and user. Enable 2FA from the security settings.": "Esta cuenta puede actuar sobre todas las publicaciones y usuarios. Activa el 2FA desde los ajustes de seguridad."
 }

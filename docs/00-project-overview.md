@@ -105,6 +105,7 @@ Ver [14-ui-design-system.md](14-ui-design-system.md).
 | `20-development-phases.md` | Hoja de ruta ejecutable por fases |
 | `21-future-roadmap.md` | Ideas fuera del MVP |
 | `22-parkingparacamiones-reference.md` | Análisis del proyecto de referencia |
+| `23-deployment.md` | Despliegue, procesos permanentes, copias de seguridad, smoke test |
 | `DECISIONS.md` | ADRs |
 | `STATUS.md` | Estado del proyecto entre sesiones |
 | `CHANGELOG.md` | Cambios por fase |

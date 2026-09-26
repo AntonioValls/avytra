@@ -70,7 +70,7 @@ Sobrearquitectura; paquetes "porque sí"; dashboards con gráficos; efectos y JS
 
 ## Mapa de documentación
 
-`docs/00-project-overview.md` (índice y estado del stack) · `01` visión · `02` alcance MVP · `03` roles y permisos · `04` dominio · `05` campos · `06` ciclo de vida · `07` base de datos · `08` público · `09` panel y admin · `10` ubicación y mapas · `11` online · `12` contacto · `13` vigencia · `14` diseño · `15` SEO · `16` seguridad · `17` medios · `18` tests · `19` arquitectura · `20` fases · `21` roadmap · `22` referencia ParkingParaCamiones · `DECISIONS.md` · `STATUS.md` · `CHANGELOG.md`.
+`docs/00-project-overview.md` (índice y estado del stack) · `01` visión · `02` alcance MVP · `03` roles y permisos · `04` dominio · `05` campos · `06` ciclo de vida · `07` base de datos · `08` público · `09` panel y admin · `10` ubicación y mapas · `11` online · `12` contacto · `13` vigencia · `14` diseño · `15` SEO · `16` seguridad · `17` medios · `18` tests · `19` arquitectura · `20` fases · `21` roadmap · `22` referencia ParkingParaCamiones · `23` despliegue y operación · `DECISIONS.md` · `STATUS.md` · `CHANGELOG.md`.
 
 ---
 

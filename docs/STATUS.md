@@ -2,9 +2,27 @@
 
 ## Current phase
 
-**Phase 9 — SEO: implementada y verificada (tests y navegador), pendiente de revisión del propietario y de la validación manual con herramientas de resultados enriquecidos.** Al aprobarla, comienza Phase 10 — Endurecimiento y lanzamiento. Fases cerradas: 0 a 9 (10 de 11); queda la 10.
+**Phase 10 — Endurecimiento y lanzamiento: la parte de código está implementada y verificada (tests y navegador). La fase se cierra con el lanzamiento, que depende de tareas del propietario (checklist abajo).** Las 11 fases del plan (0 a 10) tienen su código hecho; lo que queda es operativo: textos legales, proveedor de email, staging y despliegue.
 
-Phase 8 se dio por aprobada el 2026-09-26 al pedir el propietario seguir con Phase 9. Phase 7 se dio por aprobada el 2026-09-26 al pedir el inicio de Phase 8. Phase 6 se dio por aprobada el 2026-09-26 al pedir el inicio de Phase 7 (sin dependencias nuevas). Phase 5 se dio por aprobada el 2026-09-23 al pedir el inicio de Phase 6; esa petición se tomó como aprobación de `spatie/laravel-medialibrary` (ADR-006), igual que `maplibre-gl` en Phase 5.
+Phase 9 se dio por aprobada el 2026-09-26 al pedir el propietario seguir con Phase 10. Phase 8 se dio por aprobada el 2026-09-26 al pedir seguir con Phase 9.
+
+## Checklist de lanzamiento (Phase 10)
+
+| Punto | Estado |
+|---|---|
+| Revisión de seguridad de docs/16 punto por punto (Policies, validación, mass assignment, rate limiting, uploads, XSS, CSRF, enumeración, spam, emails, privacidad, auditoría, superadmin, secretos) | ✅ Revisado; huecos cerrados en esta fase: limitador y honeypot de registro, `email:rfc,dns` en producción, cabeceras de seguridad, aviso de 2FA. CSP pospuesta (ADR-018) |
+| `composer audit` / `npm audit` en CI | ✅ Paso "Audit dependencies" en `tests.yml`; en local ambos sin avisos (2026-09-26) |
+| Rendimiento: `Model::preventLazyLoading` fuera de producción, índices, caché de agregados y sitemap, Blaze en tarjetas | ✅ `preventLazyLoading` desde Phase 1 (la suite lo vigila); índices de `listings` por estado y fechas; cachés de 15 min/1 h invalidadas en transiciones; Blaze en 5 componentes de presentación |
+| Responsive final | ✅ Comprobado en móvil en cada fase (explorar, ficha, panel, confirmación, admin); pendiente ojo del propietario |
+| Accesibilidad (contraste, foco, labels, alt) | ✅ Pasada automática en home y explorar: `lang`, un `h1`, imágenes con `alt`, botones e inputs con nombre; anillo de foco `focus-visible` en tarjetas y botones Flux. Contraste Lime sobre Ink por diseño (docs/14) |
+| Textos legales definitivos | ⏳ Propietario (plantillas con aviso "texto provisional" en `/aviso-legal`, `/privacidad`, `/cookies`) |
+| Emails probados en clientes reales | ⏳ Propietario, desde el proveedor de producción (tema `avytra` verificado en navegador) |
+| Configuración de producción (worker, cron, disco de medios, backups, logs) | ✅ Documentada en `docs/23-deployment.md`; ⏳ aplicarla en el servidor |
+| Monitorización del scheduler | ✅ Latido cada minuto + aviso rojo en `/admin`; `/up` para el monitor externo |
+| Página de mantenimiento | ✅ `errors/503` de marca, verificada con `php artisan down --render="errors::503"` |
+| Documentación de despliegue | ✅ `docs/23-deployment.md` |
+| Smoke test en staging y despliegue de prueba | ⏳ Propietario, siguiendo `docs/23` (lista de 8 comprobaciones) |
+| `composer test` | ✅ 501 tests en verde | Phase 7 se dio por aprobada el 2026-09-26 al pedir el inicio de Phase 8. Phase 6 se dio por aprobada el 2026-09-26 al pedir el inicio de Phase 7 (sin dependencias nuevas). Phase 5 se dio por aprobada el 2026-09-23 al pedir el inicio de Phase 6; esa petición se tomó como aprobación de `spatie/laravel-medialibrary` (ADR-006), igual que `maplibre-gl` en Phase 5.
 
 ## Completed
 
@@ -46,21 +64,29 @@ Phase 8 se dio por aprobada el 2026-09-26 al pedir el propietario seguir con Pha
 - `Sitemap` + `SitemapController` (`/sitemap.xml`, caché olvidada en cada transición y cambio de URL), `RobotsController` (`/robots.txt` con `app.url`), middleware `explore-redirects` (301 de `?sector=`/`?provincia=`), `ItemList` + `BreadcrumbList` en páginas de sector/provincia/online, `Organization` en la home, `og:image:width/height` y `twitter:*`, descripciones de páginas legales y de provincia, `noindex` en panel/admin/auth, textos reales de sectores en `CategorySeeder`. Detalle en `CHANGELOG.md` y `docs/15`.
 - Verificado en el navegador integrado: `/robots.txt` y `/sitemap.xml` servidos por ruta; `/empresas?sector=…&tipo=online` redirige 301 a `/empresas/categoria/…?tipo=online`; página de sector con descripción real, un `ItemList` y un `BreadcrumbList` en `<body>` y ninguno en `<head>`.
 
+### Phase 10 — Endurecimiento y lanzamiento (2026-09-26, código)
+- Middlewares `AddSecurityHeaders` y `ThrottleRegistration`; honeypot y tiempo mínimo en el registro; `email:rfc,dns` en producción; `SchedulerHeartbeat` con aviso en el resumen operativo; aviso de 2FA al superadmin; página `errors/503`; Blaze opt-in; auditorías en CI; `docs/23-deployment.md`; ADR-018. Detalle en `CHANGELOG.md`.
+- Verificado en el navegador integrado: página de mantenimiento real (`artisan down/up`), avisos del resumen admin, cabeceras de seguridad en la respuesta, pasada de accesibilidad en la home.
+
 ## In progress
 
-- Nada.
+- Nada de código. Lanzamiento pendiente de las tareas del propietario del checklist.
 
 ## Next
 
+- Propietario: textos legales, proveedor de email y prueba en clientes reales, servidor de staging con `docs/23` (worker, cron, `APP_URL`, `AVYTRA_LOCATION_SALT`, `AVYTRA_SUPPORT_EMAIL`), smoke test y despliegue. Tras el lanzamiento, cada mejora del roadmap (`docs/21`) se convierte en una fase numerada.
 - Revisión del propietario de Phase 9. Validación manual pendiente con la prueba de resultados enriquecidos de Google (ficha, sector y home) cuando el sitio esté en un dominio público; en local: `/robots.txt`, `/sitemap.xml`, `/empresas/categoria/hosteleria-y-restauracion` (ver el JSON-LD al final del `<body>`). Las categorías locales ya se re-sembraron con las descripciones (`php artisan db:seed --class=CategorySeeder`).
 - Revisión del propietario de Phase 8. Para probar en local: `/admin/usuarios` → "Nuevo usuario" (sin `AVYTRA_SUPPORT_EMAIL` el email es obligatorio; con él, dejarlo vacío crea el alias `local+nombre@dominio`), luego "Nueva empresa para este usuario" y "Nueva publicación para este usuario"; `/admin/auditoria` para ver el rastro; Ctrl+K desde cualquier página admin. El email de contraseña sale por la cola (`php artisan queue:work`) al log con `MAIL_MAILER=log`. La cuenta "Prueba Asistida" (`prueba.asistida@example.com`) se creó durante la verificación y puede borrarse.
 - Revisión del propietario de Phase 7. Para probar en local: `php artisan avytra:listings:process-freshness --dry-run` (lista lo que haría), `php artisan schedule:list`, y con `MAIL_MAILER=log` los emails quedan en `storage/logs/laravel.log`. Para ver un aviso real: poner `last_confirmed_at` de una publicación 45 días atrás, ejecutar el comando sin `--dry-run` con un worker de cola (`php artisan queue:work`) y abrir el enlace del email. La publicación de demo se confirmó durante la verificación (día 0 otra vez).
 - Pendiente de revisión visual del propietario desde Phase 6: paso 7 del wizard y sección de imágenes del formulario de empresa (subida, reordenación, alt, borrado; requiere worker de cola).
-- Phase 10 — Endurecimiento y lanzamiento.
-
 ## Blockers
 
-- Ninguno.
+- Ninguno en código. El lanzamiento espera las tareas del propietario del checklist.
+- Notas aceptadas de Phase 10:
+  - Blaze solo compila `listing-card`, `price`, `freshness-badge`, `listing-status-badge` y `empty-state`: compilar toda la carpeta de componentes rompía `auth-header` (props sin valor por defecto con una variable homónima en el ámbito del padre). Tras `view:clear`, la primera petición puede fallar una vez en Windows mientras Blaze escribe la vista compilada.
+  - El limitador de registro va en un middleware del grupo `web` porque modificar la ruta de Fortify al arrancar no funciona (las búsquedas por nombre se refrescan después) ni sobreviviría a `route:cache`.
+  - HSTS solo sobre HTTPS y en `APP_ENV=production`; `email:rfc,dns` también solo en producción (la suite no tiene red).
+  - El aviso de 2FA no bloquea al superadmin: es política, no middleware (docs/16).
 - Notas aceptadas de Phase 9:
   - El sitemap es un único archivo (hasta 50.000 URL); el índice de sitemaps queda para cuando haga falta. `lastmod` de las fichas = `sold_at` o `updated_at`.
   - `robots.txt` y el `Sitemap:` usan `config('app.url')`, no el host de la petición: `APP_URL` debe ser el dominio público en producción.
@@ -94,8 +120,8 @@ Ver `docs/DECISIONS.md` (ADR-001…017; ADR-006 aceptado con resultado). Decisio
 
 ## Last tests executed
 
-- 2026-09-26 — `composer test` (Pint + Larastan nivel 7 + Pest): **495 tests, todo en verde** (484 de Phase 8 más 11 nuevos). Nuevos: `Public/SitemapTest`, `Public/SeoTest`.
+- 2026-09-26 — `composer test` (Pint + Larastan nivel 7 + Pest): **501 tests, todo en verde** (495 de Phase 9 más 6 nuevos). Nuevos: `Security/HardeningTest`.
 
 ## Last updated
 
-2026-09-26 — Phase 9 implementada, verificada con tests y en navegador; pendiente de revisión del propietario.
+2026-09-26 — Phase 10: código implementado y verificado; lanzamiento pendiente del checklist del propietario.

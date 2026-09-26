@@ -45,7 +45,7 @@ class AdminUserForm extends Form
             'email' => [
                 $emailRequired ? 'required' : 'nullable',
                 'string',
-                'email',
+                app()->isProduction() ? 'email:rfc,dns' : 'email',
                 'max:255',
                 $this->userId === null ? Rule::unique(User::class) : Rule::unique(User::class)->ignore($this->userId),
             ],

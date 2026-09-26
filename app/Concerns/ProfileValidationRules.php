@@ -41,7 +41,8 @@ trait ProfileValidationRules
         return [
             'required',
             'string',
-            'email',
+            // The DNS check needs the network: production only (docs/16).
+            app()->isProduction() ? 'email:rfc,dns' : 'email',
             'max:255',
             $userId === null
                 ? Rule::unique(User::class)

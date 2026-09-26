@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Livewire\Blaze\Blaze;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -63,6 +64,21 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->configureDefaults();
         $this->configureRateLimiting();
+        $this->configureBlaze();
+    }
+
+    /**
+     * Blaze compiles the presentational components of the marketplace (the ones rendered
+     * dozens of times per page) into plain PHP functions. Opt-in per file on purpose: the
+     * folder also holds Livewire single-file components and layout pieces that gain nothing.
+     */
+    protected function configureBlaze(): void
+    {
+        $blaze = Blaze::optimize();
+
+        foreach (['listing-card', 'price', 'freshness-badge', 'listing-status-badge', 'empty-state'] as $component) {
+            $blaze->in(resource_path("views/components/{$component}.blade.php"));
+        }
     }
 
     /**

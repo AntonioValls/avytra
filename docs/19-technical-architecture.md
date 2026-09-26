@@ -112,7 +112,7 @@ Reglas:
 
 ## Colas y scheduler
 
-- `QUEUE_CONNECTION=database` en local; en producción `database` o `redis` según hosting. Worker supervisado (`php artisan queue:work`) y cron `schedule:run` cada minuto. Se documenta en README de despliegue en Phase 10.
+- `QUEUE_CONNECTION=database` en local; en producción `database` o `redis` según hosting. Worker supervisado (`php artisan queue:work`) y cron `schedule:run` cada minuto. Documentado en [23-deployment.md](23-deployment.md) (Phase 10), con el latido `avytra:scheduler-heartbeat` (`App\Support\Monitoring\SchedulerHeartbeat`) que el resumen operativo vigila.
 - Jobs: notificaciones, conversiones de imagen, geocodificación.
 - Scheduler: `avytra:listings:process-freshness` (hourly), `media-library:clean` opcional, limpieza de reportes resueltos antiguos (roadmap).
 

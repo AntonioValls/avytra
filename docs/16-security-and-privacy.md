@@ -35,7 +35,7 @@
 | Subida de imágenes | 30/hora por usuario |
 | Geocodificación | 1/s global + 20/hora por usuario |
 
-Definidos en `AppServiceProvider` con nombres (`register` y `public` desde Phase 1; `confirmation` desde Phase 7, aplicado como `throttle:confirmation` a la ruta de la página de confirmación), aplicados con `throttle:{nombre}` o `RateLimiter` en acciones Livewire. Fortify no permite asignar un limitador solo a la ruta de registro por configuración; el limitador `register` se aplicará con un middleware propio sobre `POST /register` (o junto al honeypot) en Phase 10.
+Definidos en `AppServiceProvider` con nombres (`register` y `public` desde Phase 1; `confirmation` desde Phase 7, aplicado como `throttle:confirmation` a la ruta de la página de confirmación), aplicados con `throttle:{nombre}` o `RateLimiter` en acciones Livewire. Fortify no permite asignar un limitador solo a la ruta de registro por configuración; desde Phase 10 el middleware `App\Http\Middleware\ThrottleRegistration` (grupo `web`) delega en `ThrottleRequests` con el limitador `register` solo cuando la ruta es `register.store`; mutar la ruta de Fortify al arrancar no sobrevive a `route:cache`.
 
 ## Uploads
 
@@ -52,7 +52,7 @@ Implementación (Phase 6): reglas desde `config('avytra.media')` en el component
 - Descripciones en texto plano; párrafos con `nl2br(e($text))` o componente `x-prose-text`.
 - Sin `flux:editor` en MVP (evita sanitización HTML). Si se incorpora, se añadirá un sanitizador con lista blanca y ADR.
 - Los `data-*` que consume el mapa se generan con `Js::from()` / `json_encode` con flags `JSON_HEX_*`.
-- CSP en Phase 10 (dificultada por Livewire/Alpine inline; se evaluará `nonce`).
+- CSP: evaluada en Phase 10 y pospuesta (ADR-018): Livewire, Alpine y Flux dependen de scripts y estilos inline y una política con `nonce` exigiría tocar los assets de los paquetes. En su lugar, el middleware `AddSecurityHeaders` (grupo `web`) envía `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` restrictiva y, sobre HTTPS en producción, `Strict-Transport-Security`.
 
 ## CSRF
 
@@ -66,7 +66,7 @@ Cubierto por Livewire y por `@csrf` en formularios clásicos. No existe ninguna 
 
 ## Spam y bots
 
-- Honeypot + tiempo mínimo de envío en reporte y registro.
+- Honeypot + tiempo mínimo de envío en reporte y registro. Phase 10: en el registro, campo oculto `website` y `form_opened_at` comprobados en `CreateNewUser::rejectBots()` (`avytra.registration.min_seconds_to_submit`); la respuesta es un error de validación genérico sobre el email. Emails con `email:rfc,dns` solo en producción (`ProfileValidationRules`, `AdminUserForm`).
 - Registro con verificación de email obligatoria para publicar (`verified` ya en rutas).
 - Publicaciones nuevas visibles en `/admin` (últimas 24 h) para revisión rápida posterior.
 - Sin CAPTCHA en el MVP; si aparece spam, se evalúa Turnstile (sin coste) con ADR.
@@ -116,7 +116,7 @@ Implementado en Phase 4: `App\Support\Listings\PublicListingPresenter` (constant
 
 ## Superadmin
 
-- Cuenta con 2FA obligatorio (se verifica en Phase 1 con middleware o comprobación en login para `superadmin`; si Fortify no lo permite fácilmente, se documenta como política).
+- Cuenta con 2FA obligatorio como política: no se bloquea el acceso, pero el resumen operativo de `/admin` muestra un aviso permanente con enlace a los ajustes de seguridad mientras el superadmin no tenga 2FA confirmado (Phase 10).
 - Asignación solo por comando Artisan.
 - Todas sus acciones sobre recursos ajenos quedan en `audit_logs`.
 
@@ -124,4 +124,4 @@ Implementado en Phase 4: `App\Support\Listings\PublicListingPresenter` (constant
 
 - `auth.json` (credenciales Flux Pro) **no debe** estar en el repositorio. Verificado en Phase 0: está en `.gitignore` y no está trackeado.
 - Secretos solo en `.env`; `APP_KEY` rotable con `APP_PREVIOUS_KEYS`.
-- `composer audit` y `npm audit` en CI (Phase 10).
+- `composer audit` y `npm audit --audit-level=high` en CI (`.github/workflows/tests.yml`, paso "Audit dependencies", Phase 10).

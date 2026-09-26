@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Middleware\AddSecurityHeaders;
 use App\Http\Middleware\EnsureUserIsSuperadmin;
 use App\Http\Middleware\RedirectExploreFiltersToLandingPages;
+use App\Http\Middleware\ThrottleRegistration;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -14,6 +16,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->web(append: [ThrottleRegistration::class, AddSecurityHeaders::class]);
+
         $middleware->alias([
             'superadmin' => EnsureUserIsSuperadmin::class,
             'explore-redirects' => RedirectExploreFiltersToLandingPages::class,

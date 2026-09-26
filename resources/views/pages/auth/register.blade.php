@@ -7,6 +7,12 @@
 
         <form method="POST" action="{{ route('register.store') }}" class="flex flex-col gap-6">
             @csrf
+            {{-- Honeypot and opening time (docs/16): humans never see nor fill "website". --}}
+            <div class="hidden" aria-hidden="true">
+                <label for="website">{{ __('Website') }}</label>
+                <input type="text" id="website" name="website" tabindex="-1" autocomplete="off" value="">
+            </div>
+            <input type="hidden" name="form_opened_at" value="{{ now()->getTimestamp() }}">
             <!-- Name -->
             <flux:input
                 name="name"

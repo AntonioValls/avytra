@@ -3,7 +3,9 @@
 use App\Models\Listing;
 use App\Models\ListingReport;
 use App\Models\User;
+use App\Support\Monitoring\SchedulerHeartbeat;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
@@ -82,6 +84,30 @@ new class extends Component {
         return User::query()->where('is_assisted', true)->count();
     }
 
+    #[Computed]
+    public function schedulerHealthy(): bool
+    {
+        return app(SchedulerHeartbeat::class)->isHealthy();
+    }
+
+    #[Computed]
+    public function schedulerLastBeat(): ?string
+    {
+        return app(SchedulerHeartbeat::class)->lastBeatAt()?->diffForHumans();
+    }
+
+    /**
+     * The superadmin account is expected to use 2FA (docs/16): a reminder, not a lock.
+     */
+    #[Computed]
+    public function needsTwoFactor(): bool
+    {
+        /** @var User $user */
+        $user = Auth::user();
+
+        return ! $user->hasEnabledTwoFactorAuthentication();
+    }
+
     /**
      * @return Collection<int, Listing>
      */
@@ -106,6 +132,26 @@ new class extends Component {
         <flux:heading size="xl" level="1">{{ __('Operational summary') }}</flux:heading>
         <flux:text>{{ __('What needs attention today. Every action is taken from the listing detail.') }}</flux:text>
     </div>
+
+    @if (! $this->schedulerHealthy)
+        <flux:callout icon="exclamation-triangle" variant="danger">
+            <flux:callout.heading>{{ __('The task scheduler is not running.') }}</flux:callout.heading>
+            <flux:callout.text>
+                {{ $this->schedulerLastBeat === null ? __('No heartbeat has been recorded yet.') : __('Last heartbeat: :time.', ['time' => $this->schedulerLastBeat]) }}
+                {{ __('Without it, reminders are not sent and listings are not paused automatically. Check the cron entry for “php artisan schedule:run”.') }}
+            </flux:callout.text>
+        </flux:callout>
+    @endif
+
+    @if ($this->needsTwoFactor)
+        <flux:callout icon="shield-exclamation" variant="warning">
+            <flux:callout.heading>{{ __('Protect the superadmin account with two-factor authentication.') }}</flux:callout.heading>
+            <flux:callout.text>{{ __('This account can act on every listing and user. Enable 2FA from the security settings.') }}</flux:callout.text>
+            <x-slot name="actions">
+                <flux:button size="sm" variant="primary" icon="shield-check" :href="route('security.edit')" wire:navigate>{{ __('Enable 2FA') }}</flux:button>
+            </x-slot>
+        </flux:callout>
+    @endif
 
     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <flux:card class="flex flex-col gap-1">

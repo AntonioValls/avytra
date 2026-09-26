@@ -2,6 +2,21 @@
 
 Formato: una sección por fase cerrada, con fecha. Cambios de documentación relevantes también se anotan.
 
+## [Phase 10] — 2026-09-26 — Endurecimiento y lanzamiento
+
+### Añadido
+- Middleware `AddSecurityHeaders` (grupo `web`): `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy` y `Strict-Transport-Security` sobre HTTPS en producción. Sin CSP estricta (ADR-018).
+- Middleware `ThrottleRegistration` (grupo `web`): limitador nombrado `register` (5/hora por IP) sobre `POST /register`, compatible con `route:cache`. Honeypot `website` y `form_opened_at` en el registro, comprobados en `CreateNewUser::rejectBots()` (`avytra.registration.min_seconds_to_submit`). `email:rfc,dns` solo en producción.
+- Latido del scheduler: `App\Support\Monitoring\SchedulerHeartbeat`, tarea `avytra:scheduler-heartbeat` cada minuto y aviso rojo en el resumen operativo cuando pasa de `avytra.monitoring.scheduler_stale_minutes`. Aviso de 2FA para el superadmin sin segundo factor, con enlace a los ajustes de seguridad.
+- Página de mantenimiento de marca `resources/views/errors/503.blade.php`, autónoma (sin Vite, Livewire ni base de datos), para `php artisan down --render="errors::503"`.
+- Blaze: compilación opt-in de `listing-card`, `price`, `freshness-badge`, `listing-status-badge` y `empty-state` (`AppServiceProvider::configureBlaze()`).
+- CI: paso "Audit dependencies" (`composer audit`, `npm audit --audit-level=high`) en `.github/workflows/tests.yml`.
+- `docs/23-deployment.md`: requisitos, variables de entorno, primer despliegue y posteriores, worker y cron, copias de seguridad, logs, smoke test y pendientes del propietario. ADR-018.
+- Tests `Security/HardeningTest` (cabeceras, honeypot y tiempo mínimo, limitador de registro, página 503, latido y avisos del resumen). 9 cadenas nuevas en `lang/es.json`.
+
+### Cambiado
+- Documentación: docs 00, 16, 19, `CLAUDE.md` (mapa de docs), STATUS con el checklist de lanzamiento.
+
 ## [Phase 9] — 2026-09-26 — SEO
 
 ### Añadido

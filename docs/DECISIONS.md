@@ -281,3 +281,16 @@ La regla "nunca borrar publicaciones por inactividad" sigue vigente: aplica a la
 
 ### Consequences
 Sin registros huérfanos ni estados especiales en Policies. Se pierde el histórico de esa cuenta, coherente con la supresión solicitada. Si más adelante se necesita retener publicaciones vendidas por motivos legales o estadísticos, se registrará un nuevo ADR con anonimización explícita.
+
+## ADR-018 — Cabeceras de seguridad sin Content-Security-Policy estricta en el lanzamiento
+
+Status: Accepted (2026-09-26, Phase 10)
+
+### Context
+docs/16 preveía evaluar una CSP en Phase 10. Livewire, Alpine y Flux inyectan scripts y estilos inline (`@fluxScripts`, `x-data`, estilos de componentes) y el módulo de mapa carga un worker propio; una política estricta requeriría `nonce` en todos ellos o `unsafe-inline`, que la vacía de contenido.
+
+### Decision
+No se envía CSP en el MVP. El middleware `App\Http\Middleware\AddSecurityHeaders`, añadido al grupo `web`, fija `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` (cámara, micrófono, geolocalización, pago y USB deshabilitados) y `Strict-Transport-Security` (un año, subdominios) solo sobre HTTPS en producción. La CSP con `nonce` sigue en el roadmap.
+
+### Consequences
+Protección frente a clickjacking, sniffing de tipos y fugas de referrer sin riesgo de romper la interfaz. Sin CSP, la defensa frente a XSS sigue siendo el escapado sistemático de salida (`{{ }}`, descripciones en texto plano, sin editor HTML). Si se incorpora un editor o contenido HTML de usuario, la CSP pasa a ser obligatoria y se revisará este ADR.

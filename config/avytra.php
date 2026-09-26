@@ -130,6 +130,16 @@ return [
         'phone' => env('AVYTRA_SUPPORT_PHONE'),
     ],
 
+    'registration' => [
+        // A registration form submitted faster than this is treated as a bot (honeypot companion).
+        'min_seconds_to_submit' => 3,
+    ],
+
+    'monitoring' => [
+        // The scheduler heartbeat runs every minute; older than this and the admin summary warns.
+        'scheduler_stale_minutes' => 10,
+    ],
+
     'rate_limits' => [
         'register_per_hour' => 5,
         'public_per_minute' => 60,
