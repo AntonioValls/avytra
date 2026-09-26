@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ListingController;
+use App\Http\Controllers\RobotsController;
+use App\Http\Controllers\SitemapController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -17,7 +19,8 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('throttle:public')->group(function () {
     Route::get('/', HomeController::class)->name('home');
 
-    Route::livewire('empresas', 'pages::public.listings.index')->name('listings.index');
+    // ?sector= / ?provincia= on the full page load redirect permanently to the landing pages (docs/15).
+    Route::livewire('empresas', 'pages::public.listings.index')->middleware('explore-redirects')->name('listings.index');
     Route::livewire('empresas/categoria/{category:slug}', 'pages::public.listings.index')->name('categories.show');
     Route::livewire('empresas/provincia/{province:slug}', 'pages::public.listings.index')->name('provinces.show');
     Route::livewire('negocios-online', 'pages::public.listings.index')->defaults('online', true)->name('listings.online');
@@ -29,6 +32,10 @@ Route::middleware('throttle:public')->group(function () {
     Route::view('privacidad', 'public.legal.privacy')->name('legal.privacy');
     Route::view('cookies', 'public.legal.cookies')->name('legal.cookies');
 });
+
+// Served by routes, not static files, so they follow app.url and the marketplace state (docs/15).
+Route::get('sitemap.xml', SitemapController::class)->name('sitemap');
+Route::get('robots.txt', RobotsController::class)->name('robots');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('panel', 'pages::dashboard')->name('dashboard');

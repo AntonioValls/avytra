@@ -64,7 +64,17 @@ Open Graph: `og:type` (`website` / `article` para ficha), `og:title`, `og:descri
 | Borrador | 404 (propietario/admin: 200 con banner) | — | No | |
 | Slug antiguo | 301 → slug actual | — | — | |
 
-Implementación (Phase 4): `PublicListingPresenter::pageMeta()` construye título, descripción, canonical, robots y el JSON-LD `Offer` + `BreadcrumbList` de la ficha; la home emite `WebSite` con `SearchAction`; explorar/categoría/provincia/online calculan canonical y `noindex` en el propio componente. Tratamiento de estados (200/404/410/301) en `ListingController`. Desde Phase 6 `og:image` es la conversión `og` (1200×630) de la portada y el `Offer` incluye `image` (conversión `detail`); sin portada, `og-default.png`. Pendiente para Phase 9: sitemap, `robots.txt` por ruta, `ItemList` y la redirección 301 de `?sector=`/`?provincia=` (hoy solo se ajusta el canonical).
+Implementación (Phase 4): `PublicListingPresenter::pageMeta()` construye título, descripción, canonical, robots y el JSON-LD `Offer` + `BreadcrumbList` de la ficha; la home emite `WebSite` con `SearchAction`; explorar/categoría/provincia/online calculan canonical y `noindex` en el propio componente. Tratamiento de estados (200/404/410/301) en `ListingController`. Desde Phase 6 `og:image` es la conversión `og` (1200×630) de la portada y el `Offer` incluye `image` (conversión `detail`); sin portada, `og-default.png`.
+
+Implementación (Phase 9):
+
+- **Sitemap**: `App\Support\Seo\Sitemap` (`urls()`, `xml()`, `forget()`) servido por `SitemapController` en `/sitemap.xml` (ruta `sitemap`). Cacheado `avytra.seo.sitemap_cache_minutes` (60) y olvidado, junto con `MarketplaceAggregates`, desde `RecordsListingEvents::forgetPublicCaches()` (llamado en cada `transition()` y en `ChangeListingSlug`) con `DB::afterCommit`. Contiene home, explorar, estáticas, `/negocios-online` si hay alguna online, sectores y provincias con publicaciones visibles y todas las fichas visibles (`lastmod` = `sold_at` o `updated_at`). Un solo archivo.
+- **robots.txt**: `RobotsController` (`/robots.txt`), `Disallow` desde `avytra.seo.robots_disallow` y `Sitemap:` construido con `config('app.url')`. El archivo estático `public/robots.txt` se eliminó.
+- **Redirección 301** de `/empresas?sector=` y `/empresas?provincia=` (uno u otro, no ambos) a su página propia conservando el resto de filtros: middleware `RedirectExploreFiltersToLandingPages` (alias `explore-redirects`) solo en la ruta `listings.index`; los cambios de filtro en página (Livewire) siguen ajustando únicamente el canonical.
+- **JSON-LD**: categoría, provincia y online emiten `ItemList` (elementos de la página actual con `position` absoluta y `numberOfItems` total) + `BreadcrumbList` solo cuando tienen resultados; la home añade `Organization` (nombre, URL, logo `app-icon-512.png`). Todo sigue en `<body>`.
+- **Metadatos**: `og:image:width/height` (1200×630) y `twitter:title/description/image` en el layout público; descripción propia en las páginas legales (`x-public.legal-page` acepta `description`); descripción de provincia generada con recuento y hasta cinco sectores presentes; `noindex, nofollow` en `partials/head` (panel, admin y auth).
+- **Textos de categorías**: `CategorySeeder::DESCRIPTIONS` con una introducción real por sector (`categories.description`), mostrada bajo el título y usada como meta description. Re-sembrar con `php artisan db:seed --class=CategorySeeder` (idempotente).
+- **Tests**: `Public/SitemapTest` y `Public/SeoTest`; `ListingExploreTest` adaptado al 301.
 
 ## Sitemap y robots
 

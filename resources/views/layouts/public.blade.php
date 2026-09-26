@@ -28,7 +28,12 @@
         <meta property="og:description" content="{{ $meta->resolvedDescription() }}">
         <meta property="og:url" content="{{ $meta->resolvedCanonical() }}">
         <meta property="og:image" content="{{ $meta->resolvedOgImage() }}">
+        <meta property="og:image:width" content="{{ config('avytra.media.conversions.og.width') }}">
+        <meta property="og:image:height" content="{{ config('avytra.media.conversions.og.height') }}">
         <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="{{ $meta->fullTitle() }}">
+        <meta name="twitter:description" content="{{ $meta->resolvedDescription() }}">
+        <meta name="twitter:image" content="{{ $meta->resolvedOgImage() }}">
 
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">

@@ -1044,5 +1044,9 @@
     "Report #:id": "Reporte #:id",
     "Deleted (#:id)": "Eliminado (#:id)",
     "Search users, businesses and listings…": "Buscar usuarios, empresas y publicaciones…",
-    "No results found": "Sin resultados"
+    "No results found": "Sin resultados",
+    "{1} One business for sale or transfer in the province of :province, with confirmed availability. Sectors: :sectors.|[2,*] :count businesses for sale or transfer in the province of :province, with confirmed availability. Sectors: :sectors.": "{1} Una empresa en venta o traspaso en la provincia de :province, con disponibilidad confirmada. Sectores: :sectors.|[2,*] :count empresas en venta o traspaso en la provincia de :province, con disponibilidad confirmada. Sectores: :sectors.",
+    "Legal notice of AVYTRA: who runs the platform, what it offers and the responsibilities of the people who publish listings.": "Aviso legal de AVYTRA: quién gestiona la plataforma, qué ofrece y las responsabilidades de quienes publican.",
+    "Privacy policy of AVYTRA: which data we store, what is never public and how to exercise your rights.": "Política de privacidad de AVYTRA: qué datos guardamos, qué nunca es público y cómo ejercer tus derechos.",
+    "Cookies policy of AVYTRA: only the technical cookies the site needs to work, no tracking.": "Política de cookies de AVYTRA: solo las cookies técnicas que el sitio necesita para funcionar, sin seguimiento."
 }

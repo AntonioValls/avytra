@@ -9,6 +9,9 @@ use App\Models\Listing;
 use App\Models\ListingEvent;
 use App\Models\User;
 use App\Support\Audit\AuditLogger;
+use App\Support\Listings\MarketplaceAggregates;
+use App\Support\Seo\Sitemap;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Shared plumbing of the listing Actions: status change guarded by the transition table,
@@ -27,6 +30,20 @@ trait RecordsListingEvents
         throw_unless($listing->status->canTransitionTo($to), InvalidListingTransition::for($listing, $to));
 
         $listing->status = $to;
+
+        $this->forgetPublicCaches();
+    }
+
+    /**
+     * A status or URL change alters what is public: the sitemap and the aggregates are
+     * rebuilt on the next request, once the surrounding transaction has committed.
+     */
+    protected function forgetPublicCaches(): void
+    {
+        DB::afterCommit(function (): void {
+            app(Sitemap::class)->forget();
+            app(MarketplaceAggregates::class)->forget();
+        });
     }
 
     /**

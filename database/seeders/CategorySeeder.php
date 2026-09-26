@@ -130,6 +130,31 @@ class CategorySeeder extends Seeder
     ];
 
     /**
+     * Introduction of each sector page (docs/15, "textos reales de categorías"): shown under
+     * the title and used as meta description. Spanish on purpose: it is content, not UI.
+     *
+     * @var array<string, string>
+     */
+    private const array DESCRIPTIONS = [
+        'Hostelería y restauración' => 'Restaurantes, bares, cafeterías, locales de ocio y alojamientos en venta o traspaso. Negocios en marcha con licencia, clientela y equipamiento, publicados por sus propietarios con disponibilidad confirmada.',
+        'Alimentación' => 'Panaderías, carnicerías, fruterías, supermercados y tiendas de alimentación que cambian de manos. Comercios de proximidad con clientela fija, en traspaso o venta directa por el propietario.',
+        'Comercio' => 'Tiendas de moda, hogar, electrónica, librerías, farmacias, estancos y otros comercios en venta o traspaso. Locales con fondo de comercio, stock y clientela, con los datos que el vendedor decide hacer públicos.',
+        'Salud y bienestar' => 'Clínicas dentales, centros de fisioterapia, ópticas, gimnasios, consultas y residencias en venta o traspaso. Negocios sanitarios y de bienestar con licencia de actividad y cartera de pacientes o socios.',
+        'Peluquería y estética' => 'Peluquerías, barberías, centros de estética, uñas, spa y masajes en traspaso o venta. Locales equipados y con clientela habitual, ideales para profesionales que quieren emprender por su cuenta.',
+        'Automoción y transporte' => 'Talleres mecánicos, concesionarios y compraventas, lavaderos, gasolineras, empresas de transporte y alquiler de vehículos en venta o traspaso, con maquinaria, licencias y flota cuando procede.',
+        'Industria y fabricación' => 'Empresas industriales en venta: alimentaria, metal, textil, madera, química y plásticos. Fábricas y talleres con maquinaria, instalaciones y cartera de clientes, para continuar la actividad o integrarla en otro grupo.',
+        'Construcción e instalaciones' => 'Constructoras, empresas de reformas, instaladores de fontanería, electricidad y climatización, carpinterías, cerrajerías y almacenes de materiales en venta o traspaso.',
+        'Servicios profesionales' => 'Asesorías, gestorías, despachos, agencias inmobiliarias, consultoras, corredurías de seguros y agencias de marketing en venta. Carteras de clientes y equipos consolidados que buscan continuidad.',
+        'Educación y formación' => 'Academias, escuelas infantiles, centros de idiomas, formación profesional y autoescuelas en venta o traspaso. Centros con alumnado, autorizaciones y aulas equipadas.',
+        'Tecnología y digital' => 'Empresas de software y SaaS, tiendas online, agencias de marketing digital, servicios informáticos, medios digitales y aplicaciones en venta. Negocios que funcionan total o parcialmente en internet.',
+        'Agricultura y ganadería' => 'Explotaciones agrícolas y ganaderas, viveros, empresas de jardinería, bodegas y almazaras en venta. Fincas, instalaciones y marcas con producción en marcha.',
+        'Turismo y ocio' => 'Agencias de viajes, empresas de actividades turísticas y de aventura, campings, casas rurales, ocio infantil y salas de espectáculos en venta o traspaso.',
+        'Distribución y mayoristas' => 'Distribuidoras y mayoristas de alimentación y bebidas, productos industriales, textil y calzado, importación y exportación en venta. Almacenes, rutas y carteras de clientes establecidas.',
+        'Servicios a empresas y hogares' => 'Empresas de limpieza, seguridad, mantenimiento, recursos humanos, lavanderías, mensajería y reparto en venta o traspaso. Servicios recurrentes con contratos y clientela estable.',
+        'Otros negocios' => 'Negocios y empresas en venta o traspaso que no encajan en los sectores anteriores. Cada publicación explica la actividad, lo que se incluye y cómo contactar con el propietario.',
+    ];
+
+    /**
      * Run the database seeds.
      */
     public function run(): void
@@ -139,7 +164,7 @@ class CategorySeeder extends Seeder
         foreach (self::SECTORS as $sectorName => $subsectors) {
             $sector = Category::query()->updateOrCreate(
                 ['slug' => Str::slug($sectorName)],
-                ['parent_id' => null, 'name' => $sectorName, 'sort_order' => ++$sectorOrder, 'is_active' => true],
+                ['parent_id' => null, 'name' => $sectorName, 'description' => self::DESCRIPTIONS[$sectorName], 'sort_order' => ++$sectorOrder, 'is_active' => true],
             );
 
             $subsectorOrder = 0;

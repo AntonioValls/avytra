@@ -229,6 +229,13 @@ new class extends Component {
         }
 
         if ($this->fixedProvince !== null) {
+            $total = $this->results->total();
+            $sectors = $total > 0 ? $this->sectorsInResults() : [];
+
+            if ($total > 0 && $sectors !== []) {
+                return trans_choice('{1} One business for sale or transfer in the province of :province, with confirmed availability. Sectors: :sectors.|[2,*] :count businesses for sale or transfer in the province of :province, with confirmed availability. Sectors: :sectors.', $total, ['province' => $this->fixedProvince->name, 'sectors' => mb_strtolower(implode(', ', $sectors))]);
+            }
+
             return __('Businesses and companies in the province of :province offered for sale or transfer, with confirmed availability.', ['province' => $this->fixedProvince->name]);
         }
 
@@ -267,12 +274,83 @@ new class extends Component {
             default => $this->baseUrl(),
         };
 
+        $isEmpty = $this->results->total() === 0;
+
         return new PageMeta(
             title: $this->pageTitle(),
             description: $this->pageIntro(),
             canonical: $canonical,
-            robots: $isLandingPage && $this->results->total() === 0 ? 'noindex,follow' : null,
+            robots: $isLandingPage && $isEmpty ? 'noindex,follow' : null,
+            // ItemList and BreadcrumbList only on the landing pages with content (docs/15).
+            jsonLd: $isLandingPage && ! $isEmpty ? [$this->itemListJsonLd(), $this->breadcrumbJsonLd()] : [],
         );
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function itemListJsonLd(): array
+    {
+        $offset = ($this->results->currentPage() - 1) * $this->results->perPage();
+
+        return [
+            '@context' => 'https://schema.org',
+            '@type' => 'ItemList',
+            'name' => $this->pageTitle(),
+            'numberOfItems' => $this->results->total(),
+            'itemListElement' => $this->cards
+                ->filter(fn (PublicListingPresenter $card): bool => $card->url() !== null)
+                ->values()
+                ->map(fn (PublicListingPresenter $card, int $index): array => [
+                    '@type' => 'ListItem',
+                    'position' => $offset + $index + 1,
+                    'name' => $card->title(),
+                    'url' => $card->url(),
+                ])
+                ->all(),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function breadcrumbJsonLd(): array
+    {
+        $items = [
+            ['name' => __('Home'), 'item' => route('home')],
+            ['name' => __('Businesses'), 'item' => route('listings.index')],
+            ['name' => $this->fixedCategory?->name ?? $this->fixedProvince?->name ?? __('Online businesses'), 'item' => $this->baseUrl()],
+        ];
+
+        return [
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => array_map(fn (array $item, int $index): array => [
+                '@type' => 'ListItem',
+                'position' => $index + 1,
+                'name' => $item['name'],
+                'item' => $item['item'],
+            ], $items, array_keys($items)),
+        ];
+    }
+
+    /**
+     * Sectors present among the results of a province page, for its meta description.
+     *
+     * @return list<string>
+     */
+    private function sectorsInResults(): array
+    {
+        return Category::query()
+            ->active()
+            ->roots()
+            ->whereHas('businesses', fn (Builder $business) => $business->whereIn('id', Listing::query()
+                ->publiclyVisible()
+                ->whereHas('business.location', fn (Builder $location) => $location->where('is_primary', true)->where('province_id', $this->fixedProvinceId))
+                ->select('business_id')))
+            ->limit(5)
+            ->pluck('name')
+            ->all();
     }
 
     /**

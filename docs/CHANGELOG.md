@@ -2,6 +2,20 @@
 
 Formato: una sección por fase cerrada, con fecha. Cambios de documentación relevantes también se anotan.
 
+## [Phase 9] — 2026-09-26 — SEO
+
+### Añadido
+- `App\Support\Seo\Sitemap` y `SitemapController` (`/sitemap.xml`): home, explorar, estáticas, online (si hay), sectores y provincias con contenido y fichas visibles con `lastmod`; caché de `avytra.seo.sitemap_cache_minutes` olvidada (con los agregados) en cada transición de estado y cambio de URL (`RecordsListingEvents::forgetPublicCaches()`, `DB::afterCommit`).
+- `RobotsController` (`/robots.txt`): `Disallow` desde `avytra.seo.robots_disallow` y `Sitemap:` con `app.url`. Se elimina `public/robots.txt`.
+- Middleware `RedirectExploreFiltersToLandingPages` (`explore-redirects`): `/empresas?sector=` y `/empresas?provincia=` redirigen 301 a su página propia conservando los demás filtros.
+- JSON-LD `ItemList` + `BreadcrumbList` en categoría, provincia y online con resultados; `Organization` en la home. `og:image:width/height` y etiquetas `twitter:*`; descripción propia en las páginas legales; descripción de provincia con recuento y sectores; `noindex, nofollow` en panel, admin y auth.
+- `CategorySeeder::DESCRIPTIONS`: introducción real de cada sector.
+- Tests `Public/SitemapTest` y `Public/SeoTest`; 4 cadenas nuevas en `lang/es.json`.
+
+### Cambiado
+- `ListingExploreTest`: el test del canonical de `?sector=` pasa a comprobar el 301.
+- Documentación: docs 15 con notas de implementación, STATUS.
+
 ## [Phase 8] — 2026-09-26 — Administración y asistencia
 
 ### Añadido

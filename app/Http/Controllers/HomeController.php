@@ -30,17 +30,27 @@ class HomeController extends Controller
             title: __('Businesses that change hands.'),
             description: __('Businesses for sale or transfer, with clear data and confirmed availability.'),
             canonical: route('home'),
-            jsonLd: [[
-                '@context' => 'https://schema.org',
-                '@type' => 'WebSite',
-                'name' => config('app.name'),
-                'url' => route('home'),
-                'potentialAction' => [
-                    '@type' => 'SearchAction',
-                    'target' => route('listings.index').'?q={search_term_string}',
-                    'query-input' => 'required name=search_term_string',
+            jsonLd: [
+                [
+                    '@context' => 'https://schema.org',
+                    '@type' => 'WebSite',
+                    'name' => config('app.name'),
+                    'url' => route('home'),
+                    'potentialAction' => [
+                        '@type' => 'SearchAction',
+                        'target' => route('listings.index').'?q={search_term_string}',
+                        'query-input' => 'required name=search_term_string',
+                    ],
                 ],
-            ]],
+                [
+                    '@context' => 'https://schema.org',
+                    '@type' => 'Organization',
+                    'name' => config('app.name'),
+                    'url' => route('home'),
+                    'logo' => asset('app-icon-512.png'),
+                    'description' => __('Businesses for sale or transfer, with clear data and confirmed availability.'),
+                ],
+            ],
         );
 
         return view('public.home', [

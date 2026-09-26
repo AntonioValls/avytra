@@ -1,5 +1,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+{{-- Panel, admin and auth screens are never indexed (docs/15); robots.txt disallows them too. --}}
+<meta name="robots" content="noindex, nofollow">
 
 <title>
     {{ filled($title ?? null) ? $title.' · '.config('app.name', 'AVYTRA') : config('app.name', 'AVYTRA') }}

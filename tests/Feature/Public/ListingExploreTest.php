@@ -162,12 +162,13 @@ test('inactive or child categories have no public page', function () {
     $this->get('/empresas/categoria/no-existe')->assertNotFound();
 });
 
-test('a sector chosen on explore points its canonical to the category page', function () {
+test('a sector chosen on explore leads to the category page and free-text filters keep the clean canonical', function () {
     $sector = Category::factory()->create(['slug' => 'hosteleria']);
 
+    // A full page load with ?sector= is redirected permanently (docs/15); the canonical covers the in-page filter change.
     $this->get(route('listings.index', ['sector' => 'hosteleria']))
-        ->assertOk()
-        ->assertSee('<link rel="canonical" href="'.route('categories.show', $sector).'">', false);
+        ->assertStatus(301)
+        ->assertRedirect(route('categories.show', $sector));
 
     $this->get(route('listings.index', ['q' => 'bar']))
         ->assertOk()

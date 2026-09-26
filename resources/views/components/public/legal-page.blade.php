@@ -1,10 +1,11 @@
 @props([
     'title',
     'routeName',
+    'description' => null,
 ])
 
 @php
-    $meta = new \App\Support\Seo\PageMeta(title: $title, canonical: route($routeName));
+    $meta = new \App\Support\Seo\PageMeta(title: $title, description: $description, canonical: route($routeName));
 @endphp
 
 {{-- Shared frame of the legal pages. Texts are provisional until the owner supplies the final ones (docs/16 "Cumplimiento"). --}}

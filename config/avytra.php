@@ -118,6 +118,13 @@ return [
         ],
     ],
 
+    'seo' => [
+        // /sitemap.xml is cached this long and forgotten on every listing status or URL change.
+        'sitemap_cache_minutes' => 60,
+        // Private areas listed in /robots.txt (the panel, the admin and the auth screens).
+        'robots_disallow' => ['/panel', '/admin', '/login', '/register', '/forgot-password', '/reset-password', '/two-factor-challenge', '/user', '/settings', '/livewire'],
+    ],
+
     'support' => [
         'email' => env('AVYTRA_SUPPORT_EMAIL'),
         'phone' => env('AVYTRA_SUPPORT_PHONE'),

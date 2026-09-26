@@ -2,9 +2,9 @@
 
 ## Current phase
 
-**Phase 8 — Administración y asistencia: implementada y verificada (tests y navegador), pendiente de revisión del propietario.** Al aprobarla, comienza Phase 9 — SEO. Fases cerradas: 0 a 8 (9 de 11); quedan 9 y 10.
+**Phase 9 — SEO: implementada y verificada (tests y navegador), pendiente de revisión del propietario y de la validación manual con herramientas de resultados enriquecidos.** Al aprobarla, comienza Phase 10 — Endurecimiento y lanzamiento. Fases cerradas: 0 a 9 (10 de 11); queda la 10.
 
-Phase 7 se dio por aprobada el 2026-09-26 al pedir el propietario el inicio de Phase 8. Phase 6 se dio por aprobada el 2026-09-26 al pedir el inicio de Phase 7 (sin dependencias nuevas). Phase 5 se dio por aprobada el 2026-09-23 al pedir el inicio de Phase 6; esa petición se tomó como aprobación de `spatie/laravel-medialibrary` (ADR-006), igual que `maplibre-gl` en Phase 5.
+Phase 8 se dio por aprobada el 2026-09-26 al pedir el propietario seguir con Phase 9. Phase 7 se dio por aprobada el 2026-09-26 al pedir el inicio de Phase 8. Phase 6 se dio por aprobada el 2026-09-26 al pedir el inicio de Phase 7 (sin dependencias nuevas). Phase 5 se dio por aprobada el 2026-09-23 al pedir el inicio de Phase 6; esa petición se tomó como aprobación de `spatie/laravel-medialibrary` (ADR-006), igual que `maplibre-gl` en Phase 5.
 
 ## Completed
 
@@ -42,20 +42,30 @@ Phase 7 se dio por aprobada el 2026-09-26 al pedir el propietario el inicio de P
 - `UserPolicy`; Actions `CreateAssistedUser`, `UpdateUserByAdmin`, `SendSetPasswordLink`; notificación `SetPasswordInvitation`; `AdminUserForm`; páginas `/admin/usuarios`, `/admin/usuarios/{user}` y `/admin/auditoria`; catálogo `AuditActions`; paleta de búsqueda Ctrl/Cmd+K; tarjeta "Cuentas asistidas" en el resumen; preselección de propietario (`?propietario=ID`) en el formulario de empresa y el wizard. Corrección del wizard: el paso 5 se rellena con la ubicación y el perfil online de una empresa existente. Detalle en `CHANGELOG.md`.
 - Verificado en el navegador integrado con el superadmin sembrado: alta de una cuenta asistida desde el modal (validación de email obligatorio sin buzón de soporte, creación con email, redirección al detalle con toast y rastro de auditoría con las dos entradas), formulario de empresa con el propietario preseleccionado, página de auditoría con enlaces y cambios desplegables, paleta Ctrl+K con resultados. Sin errores de consola propios.
 
+### Phase 9 — SEO (2026-09-26)
+- `Sitemap` + `SitemapController` (`/sitemap.xml`, caché olvidada en cada transición y cambio de URL), `RobotsController` (`/robots.txt` con `app.url`), middleware `explore-redirects` (301 de `?sector=`/`?provincia=`), `ItemList` + `BreadcrumbList` en páginas de sector/provincia/online, `Organization` en la home, `og:image:width/height` y `twitter:*`, descripciones de páginas legales y de provincia, `noindex` en panel/admin/auth, textos reales de sectores en `CategorySeeder`. Detalle en `CHANGELOG.md` y `docs/15`.
+- Verificado en el navegador integrado: `/robots.txt` y `/sitemap.xml` servidos por ruta; `/empresas?sector=…&tipo=online` redirige 301 a `/empresas/categoria/…?tipo=online`; página de sector con descripción real, un `ItemList` y un `BreadcrumbList` en `<body>` y ninguno en `<head>`.
+
 ## In progress
 
 - Nada.
 
 ## Next
 
+- Revisión del propietario de Phase 9. Validación manual pendiente con la prueba de resultados enriquecidos de Google (ficha, sector y home) cuando el sitio esté en un dominio público; en local: `/robots.txt`, `/sitemap.xml`, `/empresas/categoria/hosteleria-y-restauracion` (ver el JSON-LD al final del `<body>`). Las categorías locales ya se re-sembraron con las descripciones (`php artisan db:seed --class=CategorySeeder`).
 - Revisión del propietario de Phase 8. Para probar en local: `/admin/usuarios` → "Nuevo usuario" (sin `AVYTRA_SUPPORT_EMAIL` el email es obligatorio; con él, dejarlo vacío crea el alias `local+nombre@dominio`), luego "Nueva empresa para este usuario" y "Nueva publicación para este usuario"; `/admin/auditoria` para ver el rastro; Ctrl+K desde cualquier página admin. El email de contraseña sale por la cola (`php artisan queue:work`) al log con `MAIL_MAILER=log`. La cuenta "Prueba Asistida" (`prueba.asistida@example.com`) se creó durante la verificación y puede borrarse.
 - Revisión del propietario de Phase 7. Para probar en local: `php artisan avytra:listings:process-freshness --dry-run` (lista lo que haría), `php artisan schedule:list`, y con `MAIL_MAILER=log` los emails quedan en `storage/logs/laravel.log`. Para ver un aviso real: poner `last_confirmed_at` de una publicación 45 días atrás, ejecutar el comando sin `--dry-run` con un worker de cola (`php artisan queue:work`) y abrir el enlace del email. La publicación de demo se confirmó durante la verificación (día 0 otra vez).
 - Pendiente de revisión visual del propietario desde Phase 6: paso 7 del wizard y sección de imágenes del formulario de empresa (subida, reordenación, alt, borrado; requiere worker de cola).
-- Phase 9 — SEO.
+- Phase 10 — Endurecimiento y lanzamiento.
 
 ## Blockers
 
 - Ninguno.
+- Notas aceptadas de Phase 9:
+  - El sitemap es un único archivo (hasta 50.000 URL); el índice de sitemaps queda para cuando haga falta. `lastmod` de las fichas = `sold_at` o `updated_at`.
+  - `robots.txt` y el `Sitemap:` usan `config('app.url')`, no el host de la petición: `APP_URL` debe ser el dominio público en producción.
+  - El 301 de `?sector=`/`?provincia=` solo actúa en la carga completa de `/empresas` con uno de los dos (no ambos); al cambiar el filtro en página Livewire actualiza la URL sin petición, y el canonical sigue apuntando a la página propia.
+  - Las notas de Phase 4 sobre `robots.txt`, sitemap, `ItemList` y el 301 de `?sector=` quedan resueltas.
 - Notas aceptadas de Phase 8:
   - Sin `AVYTRA_SUPPORT_EMAIL` no se pueden crear cuentas sin email (el formulario lo exige y lo explica). El alias `local+slug@dominio` recibe sufijo numérico si ya existe; el email de "establece tu contraseña" no se envía a alias.
   - `UserPolicy::changeRole` devuelve `false` antes de `before()`: ni el superadmin cambia roles desde la UI; solo `avytra:superadmin`.
@@ -84,8 +94,8 @@ Ver `docs/DECISIONS.md` (ADR-001…017; ADR-006 aceptado con resultado). Decisio
 
 ## Last tests executed
 
-- 2026-09-26 — `composer test` (Pint + Larastan nivel 7 + Pest): **484 tests, todo en verde** (463 de Phase 7 más 21 nuevos). Nuevos: `Policies/UserPolicyTest`, `Admin/AdminUsersTest`, `Admin/AdminAuditTest`, `Admin/AssistedFlowTest`.
+- 2026-09-26 — `composer test` (Pint + Larastan nivel 7 + Pest): **495 tests, todo en verde** (484 de Phase 8 más 11 nuevos). Nuevos: `Public/SitemapTest`, `Public/SeoTest`.
 
 ## Last updated
 
-2026-09-26 — Phase 8 implementada, verificada con tests y en navegador; pendiente de revisión del propietario.
+2026-09-26 — Phase 9 implementada, verificada con tests y en navegador; pendiente de revisión del propietario.

@@ -45,6 +45,8 @@ class ChangeListingSlug
             $this->stampActor($listing, $actor);
             $listing->save();
 
+            $this->forgetPublicCaches();
+
             $this->recordEvent($listing, ListingEventType::SlugChanged, $actor, ['from' => $oldSlug, 'to' => $newSlug]);
             $this->audit->log(
                 action: 'listing.slug_changed',
