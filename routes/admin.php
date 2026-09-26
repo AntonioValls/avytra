@@ -30,4 +30,9 @@ Route::middleware(['auth', 'verified', 'superadmin'])
         Route::livewire('publicaciones/{listing}/editar', 'pages::listings.wizard')->defaults('admin', true)->name('listings.edit');
 
         Route::livewire('reportes', 'pages::admin.reports.index')->name('reports.index');
+
+        Route::livewire('usuarios', 'pages::admin.users.index')->name('users.index');
+        Route::livewire('usuarios/{user}', 'pages::admin.users.show')->name('users.show');
+
+        Route::livewire('auditoria', 'pages::admin.audit.index')->name('audit.index');
     });

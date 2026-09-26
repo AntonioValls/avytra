@@ -2,6 +2,21 @@
 
 Formato: una sección por fase cerrada, con fecha. Cambios de documentación relevantes también se anotan.
 
+## [Phase 8] — 2026-09-26 — Administración y asistencia
+
+### Añadido
+- `App\Policies\UserPolicy`: `viewAny`, `create` y `sendPasswordLink` solo superadmin; `view` y `update` sobre la propia cuenta; `changeRole` siempre denegado, también al superadmin (no pasa por `before()`).
+- Actions `App\Actions\Users\CreateAssistedUser` (cuenta verificada por el admin, contraseña aleatoria, `is_assisted`, alias `local+slug@dominio` del buzón de soporte cuando la persona no tiene email, audit `user.created_by_admin`), `UpdateUserByAdmin` (nombre, email y teléfono; audit `user.updated_by_admin` solo con los campos cambiados) y `SendSetPasswordLink` (token del broker de Fortify, audit `user.password_link_sent_by_admin`). Notificación `SetPasswordInvitation` ("Tu cuenta en AVYTRA está lista"). Form Object `AdminUserForm`.
+- Admin: `/admin/usuarios` (`pages::admin.users.index`: búsqueda por nombre/email/teléfono, filtro de cuentas asistidas y superadmins, modal de alta), `/admin/usuarios/{user}` (`pages::admin.users.show`: datos editables, empresas y publicaciones, rastro de auditoría, reenvío del enlace de contraseña, botones "Nueva empresa/publicación para este usuario" con `?propietario=ID` preseleccionando el propietario en el formulario de empresa y en el wizard) y `/admin/auditoria` (`pages::admin.audit.index`: filtros por actor, acción, tipo de recurso y usuario afectado; cambios desplegables). Catálogo de acciones con etiquetas en `App\Support\Audit\AuditActions`.
+- Búsqueda global `admin.command-palette` (`flux:command` en un modal, Ctrl/Cmd+K) sobre usuarios, empresas y publicaciones desde la barra lateral admin. Resumen operativo con la tarjeta "Cuentas asistidas". Enlaces "Usuarios" y "Auditoría" en la navegación admin.
+- Tests: `Policies/UserPolicyTest`, `Admin/AdminUsersTest`, `Admin/AdminAuditTest`, `Admin/AssistedFlowTest` (flujo "llamada de teléfono" completo: cuenta → empresa → publicación → publicar → confirmar en su nombre, con `created_by`, propietario y audit comprobados; la persona ve todo como suyo y el superadmin no). 79 cadenas nuevas en `lang/es.json`.
+
+### Corregido
+- Wizard: al elegir una empresa existente en el paso 1 (o llegar con `?empresa=`) ahora se rellenan también los formularios de ubicación y perfil online, de modo que el paso 5 muestra lo ya guardado en lugar de campos vacíos que lo sobrescribirían.
+
+### Cambiado
+- Documentación: docs 03, 09 y 16 con notas de implementación, STATUS.
+
 ## [Phase 7] — 2026-09-26 — Sistema de vigencia
 
 ### Añadido

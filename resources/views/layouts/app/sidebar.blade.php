@@ -57,6 +57,13 @@
                         <flux:sidebar.item icon="flag" :href="route('admin.reports.index')" :current="request()->routeIs('admin.reports.*')" wire:navigate>
                             {{ __('Reports') }}
                         </flux:sidebar.item>
+                        <flux:sidebar.item icon="users" :href="route('admin.users.index')" :current="request()->routeIs('admin.users.*')" wire:navigate>
+                            {{ __('Users') }}
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="clipboard-document-list" :href="route('admin.audit.index')" :current="request()->routeIs('admin.audit.*')" wire:navigate>
+                            {{ __('Audit log') }}
+                        </flux:sidebar.item>
+                        <livewire:admin.command-palette />
                     @else
                         <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                             {{ __('Home') }}

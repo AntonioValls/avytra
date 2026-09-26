@@ -76,6 +76,12 @@ new class extends Component {
         return ListingReport::query()->open()->count();
     }
 
+    #[Computed]
+    public function assistedAccountsCount(): int
+    {
+        return User::query()->where('is_assisted', true)->count();
+    }
+
     /**
      * @return Collection<int, Listing>
      */
@@ -101,7 +107,7 @@ new class extends Component {
         <flux:text>{{ __('What needs attention today. Every action is taken from the listing detail.') }}</flux:text>
     </div>
 
-    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <flux:card class="flex flex-col gap-1">
             <flux:text size="sm">{{ __('Needs confirmation') }}</flux:text>
             <flux:heading size="xl">{{ $this->needingConfirmationCount }}</flux:heading>
@@ -121,6 +127,11 @@ new class extends Component {
             <flux:text size="sm">{{ __('Open reports') }}</flux:text>
             <flux:heading size="xl">{{ $this->openReportsCount }}</flux:heading>
             <flux:link :href="route('admin.reports.index')" wire:navigate class="text-sm">{{ __('See all') }}</flux:link>
+        </flux:card>
+        <flux:card class="flex flex-col gap-1">
+            <flux:text size="sm">{{ __('Assisted accounts') }}</flux:text>
+            <flux:heading size="xl">{{ $this->assistedAccountsCount }}</flux:heading>
+            <flux:link :href="route('admin.users.index', ['condicion' => 'assisted'])" wire:navigate class="text-sm">{{ __('See all') }}</flux:link>
         </flux:card>
     </div>
 

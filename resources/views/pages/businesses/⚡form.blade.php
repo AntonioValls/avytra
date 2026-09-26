@@ -63,6 +63,11 @@ new class extends LocationPickerComponent {
             $this->authorize('create', Business::class);
             $this->ownerUserId = Auth::id();
 
+            // "New business for this user" from the admin user page (?propietario=ID).
+            if ($admin && request()->integer('propietario') > 0) {
+                $this->ownerUserId = request()->integer('propietario');
+            }
+
             return;
         }
 

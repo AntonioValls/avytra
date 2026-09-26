@@ -2,9 +2,9 @@
 
 ## Current phase
 
-**Phase 7 — Sistema de vigencia: implementada y verificada (tests y navegador), pendiente de revisión del propietario.** Al aprobarla, comienza Phase 8 — Administración y asistencia. Fases cerradas: 0 a 7 (8 de 11); quedan 8, 9 y 10.
+**Phase 8 — Administración y asistencia: implementada y verificada (tests y navegador), pendiente de revisión del propietario.** Al aprobarla, comienza Phase 9 — SEO. Fases cerradas: 0 a 8 (9 de 11); quedan 9 y 10.
 
-Phase 6 se dio por aprobada el 2026-09-26 al pedir el propietario el inicio de Phase 7 (sin dependencias nuevas). Phase 5 se dio por aprobada el 2026-09-23 al pedir el inicio de Phase 6; esa petición se tomó como aprobación de `spatie/laravel-medialibrary` (ADR-006), igual que `maplibre-gl` en Phase 5.
+Phase 7 se dio por aprobada el 2026-09-26 al pedir el propietario el inicio de Phase 8. Phase 6 se dio por aprobada el 2026-09-26 al pedir el inicio de Phase 7 (sin dependencias nuevas). Phase 5 se dio por aprobada el 2026-09-23 al pedir el inicio de Phase 6; esa petición se tomó como aprobación de `spatie/laravel-medialibrary` (ADR-006), igual que `maplibre-gl` en Phase 5.
 
 ## Completed
 
@@ -38,19 +38,29 @@ Phase 6 se dio por aprobada el 2026-09-26 al pedir el propietario el inicio de P
 - `ConfirmationLink` (firma temporal, validación sobre la URL canónica) y página autenticada `/panel/publicaciones/{listing}/confirmar` con limitador `confirmation`; botón "Sigue disponible" visible en el panel; resumen operativo real en `/admin`, filtros de caducadas y avisos fallidos, reenvío desde el detalle. Detalle en `CHANGELOG.md` y `docs/13`.
 - Verificado en el navegador integrado con el usuario superadmin sembrado: email de primer aviso con el tema de marca; enlace firmado → login → aterrizaje en la página de confirmación (`intended`); clic en "Sí, sigue disponible" → "Gracias, tu publicación sigue vigente hasta el …"; resumen operativo con contadores y listas; detalle admin; móvil sin scroll horizontal; sin errores de consola propios.
 
+### Phase 8 — Administración y asistencia (2026-09-26)
+- `UserPolicy`; Actions `CreateAssistedUser`, `UpdateUserByAdmin`, `SendSetPasswordLink`; notificación `SetPasswordInvitation`; `AdminUserForm`; páginas `/admin/usuarios`, `/admin/usuarios/{user}` y `/admin/auditoria`; catálogo `AuditActions`; paleta de búsqueda Ctrl/Cmd+K; tarjeta "Cuentas asistidas" en el resumen; preselección de propietario (`?propietario=ID`) en el formulario de empresa y el wizard. Corrección del wizard: el paso 5 se rellena con la ubicación y el perfil online de una empresa existente. Detalle en `CHANGELOG.md`.
+- Verificado en el navegador integrado con el superadmin sembrado: alta de una cuenta asistida desde el modal (validación de email obligatorio sin buzón de soporte, creación con email, redirección al detalle con toast y rastro de auditoría con las dos entradas), formulario de empresa con el propietario preseleccionado, página de auditoría con enlaces y cambios desplegables, paleta Ctrl+K con resultados. Sin errores de consola propios.
+
 ## In progress
 
 - Nada.
 
 ## Next
 
+- Revisión del propietario de Phase 8. Para probar en local: `/admin/usuarios` → "Nuevo usuario" (sin `AVYTRA_SUPPORT_EMAIL` el email es obligatorio; con él, dejarlo vacío crea el alias `local+nombre@dominio`), luego "Nueva empresa para este usuario" y "Nueva publicación para este usuario"; `/admin/auditoria` para ver el rastro; Ctrl+K desde cualquier página admin. El email de contraseña sale por la cola (`php artisan queue:work`) al log con `MAIL_MAILER=log`. La cuenta "Prueba Asistida" (`prueba.asistida@example.com`) se creó durante la verificación y puede borrarse.
 - Revisión del propietario de Phase 7. Para probar en local: `php artisan avytra:listings:process-freshness --dry-run` (lista lo que haría), `php artisan schedule:list`, y con `MAIL_MAILER=log` los emails quedan en `storage/logs/laravel.log`. Para ver un aviso real: poner `last_confirmed_at` de una publicación 45 días atrás, ejecutar el comando sin `--dry-run` con un worker de cola (`php artisan queue:work`) y abrir el enlace del email. La publicación de demo se confirmó durante la verificación (día 0 otra vez).
 - Pendiente de revisión visual del propietario desde Phase 6: paso 7 del wizard y sección de imágenes del formulario de empresa (subida, reordenación, alt, borrado; requiere worker de cola).
-- Phase 8 — Administración y asistencia.
+- Phase 9 — SEO.
 
 ## Blockers
 
 - Ninguno.
+- Notas aceptadas de Phase 8:
+  - Sin `AVYTRA_SUPPORT_EMAIL` no se pueden crear cuentas sin email (el formulario lo exige y lo explica). El alias `local+slug@dominio` recibe sufijo numérico si ya existe; el email de "establece tu contraseña" no se envía a alias.
+  - `UserPolicy::changeRole` devuelve `false` antes de `before()`: ni el superadmin cambia roles desde la UI; solo `avytra:superadmin`.
+  - La paleta Ctrl+K vive en la barra lateral del área admin como componente Livewire (`admin.command-palette`); Alpine solo asocia `cmd` a la tecla meta, así que se escuchan `meta.k` y `ctrl.k` por separado. Los resultados navegan con `redirectRoute(..., navigate: true)`.
+  - Las etiquetas del audit log se resuelven en `AuditActions::label()`; una acción desconocida se muestra con su clave.
 - Notas aceptadas de Phase 7:
   - Cada ejecución del comando envía como máximo un email por publicación: entre el segundo umbral y la pausa solo se manda el segundo aviso (marcando ambos flags); por encima de la pausa se pausa sin avisos (docs/13). Tras un scheduler parado varios días, una publicación puede pasar a `expired` sin avisos previos: el email de pausa explica cómo reactivar.
   - Las notificaciones en cola no admiten `ShouldBeUnique`; las barreras contra duplicados son el flag escrito antes de encolar y `withoutOverlapping()`.
@@ -74,8 +84,8 @@ Ver `docs/DECISIONS.md` (ADR-001…017; ADR-006 aceptado con resultado). Decisio
 
 ## Last tests executed
 
-- 2026-09-26 — `composer test` (Pint + Larastan nivel 7 + Pest): **463 tests, todo en verde** (436 de Phase 6 más 27 nuevos). Nuevos: `Freshness/ProcessListingFreshnessTest`, `Freshness/FreshnessNotificationsTest`, `Listings/ListingConfirmationPageTest`, `Console/ScheduleTest`, `Admin/AdminSummaryTest`; ampliado `Admin/AdminListingsTest`.
+- 2026-09-26 — `composer test` (Pint + Larastan nivel 7 + Pest): **484 tests, todo en verde** (463 de Phase 7 más 21 nuevos). Nuevos: `Policies/UserPolicyTest`, `Admin/AdminUsersTest`, `Admin/AdminAuditTest`, `Admin/AssistedFlowTest`.
 
 ## Last updated
 
-2026-09-26 — Phase 7 implementada, verificada con tests y en navegador; pendiente de revisión del propietario.
+2026-09-26 — Phase 8 implementada, verificada con tests y en navegador; pendiente de revisión del propietario.

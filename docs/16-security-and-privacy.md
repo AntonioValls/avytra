@@ -104,6 +104,7 @@ Implementado en Phase 4: `App\Support\Listings\PublicListingPresenter` (constant
 - `listing_events` para todas las transiciones y confirmaciones (con actor y `on_behalf_of`).
 - `audit_logs` para: cualquier escritura del superadmin sobre recursos de otro usuario (con diff de campos relevantes), cambio de propietario, suspensión/levantamiento, creación de usuarios por admin, resolución de reportes, cambio manual de slug.
 - No se registra cada edición del propio propietario sobre sus recursos (proporcionalidad), ni pulsaciones.
+- Phase 8: catálogo de acciones y etiquetas en `App\Support\Audit\AuditActions`; nuevas acciones `user.created_by_admin`, `user.updated_by_admin` (solo campos cambiados) y `user.password_link_sent_by_admin`. Consulta en `/admin/auditoria`.
 - Sin paquete externo: `spatie/laravel-activitylog` se evaluó; ofrece más de lo necesario (logging de todos los modelos, causer automático) y añadiría dependencia para lo que son dos tablas y un trait. Si la auditoría crece (p. ej. diff completo de todo), se reconsidera en ADR.
 
 ## Cumplimiento (RGPD, básico)

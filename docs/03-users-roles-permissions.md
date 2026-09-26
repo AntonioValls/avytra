@@ -104,6 +104,8 @@ Flujo previsto:
 4. Publica. El `Listing` queda con `created_by_user_id` = superadmin, `business.owner_user_id` = la persona.
 5. Los recordatorios de vigencia llegan al email de contacto del propietario; el superadmin puede confirmar en su nombre desde el panel y queda registrado en `audit_logs` con `acted_on_behalf_of_user_id`.
 
+Implementado en Phase 8: `UserPolicy` (`viewAny`, `create`, `sendPasswordLink` solo superadmin; `view`/`update` sobre la propia cuenta; `changeRole` siempre falso, incluso para el superadmin, sin pasar por `before()`); Actions `App\Actions\Users\{CreateAssistedUser, UpdateUserByAdmin, SendSetPasswordLink}`; páginas `/admin/usuarios` (tabla, filtro de cuentas asistidas, modal de alta), `/admin/usuarios/{user}` (datos editables con audit, empresas, publicaciones, rastro de auditoría, botones "Nueva empresa/publicación para este usuario" que preseleccionan el propietario con `?propietario=ID`) y `/admin/auditoria`. El alias sin email se construye como `local+slug@dominio` a partir de `avytra.support.email` (con sufijo numérico si ya existe); si el soporte no tiene email configurado, el email es obligatorio. El email de "establece tu contraseña" (`SetPasswordInvitation`) reutiliza el broker de Fortify y enlaza al formulario de restablecimiento. Flujo completo cubierto por `tests/Feature/Admin/AssistedFlowTest.php`.
+
 No hay impersonación. Si más adelante resulta necesaria (por ejemplo, para reproducir un problema visual de un usuario), se documentará como mejora futura ([21-future-roadmap.md](21-future-roadmap.md)).
 
 ## Visibilidad pública vs. autorización

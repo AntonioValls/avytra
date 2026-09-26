@@ -121,8 +121,11 @@ new class extends LocationPickerComponent {
                 if ($business !== null && Auth::user()->can('create', [Listing::class, $business])) {
                     $this->selectedBusinessId = $business->id;
                     $this->ownerUserId = $business->owner_user_id;
-                    $this->business->fillFromBusiness($business);
+                    $this->fillBusinessForms($business);
                 }
+            } elseif ($admin && request()->integer('propietario') > 0) {
+                // "New listing for this user" from the admin user page.
+                $this->ownerUserId = request()->integer('propietario');
             }
 
             $this->step = self::FIRST_STEP;
@@ -465,13 +468,15 @@ new class extends LocationPickerComponent {
             $business = Business::query()->find((int) $value);
 
             if ($business !== null && Auth::user()->can('create', [Listing::class, $business])) {
-                $this->business->fillFromBusiness($business);
+                $this->fillBusinessForms($business);
 
                 return;
             }
         }
 
         $this->business->reset();
+        $this->location->reset();
+        $this->online->reset();
     }
 
     public function updatedOwnerUserId(): void
@@ -707,12 +712,15 @@ new class extends LocationPickerComponent {
         unset($this->currentListing, $this->report, $this->suggestedTitle, $this->availableBusinesses);
     }
 
-    private function fillForms(Listing $listing): void
+    /**
+     * Business, location and online profile forms from an existing business, so step 5 shows
+     * what is already stored instead of empty fields that would overwrite it.
+     */
+    private function fillBusinessForms(Business $business): void
     {
-        $business = $listing->business;
-
-        $this->operation->fillFromListing($listing);
         $this->business->fillFromBusiness($business);
+        $this->location->reset();
+        $this->online->reset();
 
         if ($business->location) {
             $this->location->fillFromLocation($business->location);
@@ -721,6 +729,12 @@ new class extends LocationPickerComponent {
         if ($business->onlineProfile) {
             $this->online->fillFromOnlineProfile($business->onlineProfile);
         }
+    }
+
+    private function fillForms(Listing $listing): void
+    {
+        $this->operation->fillFromListing($listing);
+        $this->fillBusinessForms($listing->business);
 
         $this->characteristics->fillFromListing($listing);
         $this->economics->fillFromListing($listing);
