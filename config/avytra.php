@@ -23,6 +23,8 @@ return [
         'confirmation_link_ttl_days' => 20,
         // Days a sold listing remains publicly visible (with a "sold" mark).
         'sold_visible_days' => 30,
+        // Window of the admin summary: listings paused automatically in the last N days.
+        'expired_review_days' => 30,
     ],
 
     'contact' => [
@@ -124,6 +126,8 @@ return [
     'rate_limits' => [
         'register_per_hour' => 5,
         'public_per_minute' => 60,
+        // Visits to the confirmation page linked from reminder emails, per user.
+        'confirmation_per_hour' => 30,
     ],
 
     'pagination' => [

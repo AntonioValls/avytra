@@ -13,6 +13,7 @@ enum ListingEventType: string
     case Resumed = 'resumed';
     case Confirmed = 'confirmed';
     case ReminderSent = 'reminder_sent';
+    case ReminderFailed = 'reminder_failed';
     case Expired = 'expired';
     case Sold = 'sold';
     case Archived = 'archived';
@@ -29,6 +30,7 @@ enum ListingEventType: string
             self::Resumed => __('Resumed'),
             self::Confirmed => __('Availability confirmed'),
             self::ReminderSent => __('Reminder sent'),
+            self::ReminderFailed => __('Reminder could not be delivered'),
             self::Expired => __('Paused automatically'),
             self::Sold => __('Marked as sold'),
             self::Archived => __('Archived'),
@@ -47,6 +49,7 @@ enum ListingEventType: string
             self::Resumed => 'play',
             self::Confirmed => 'check-badge',
             self::ReminderSent => 'bell',
+            self::ReminderFailed => 'bell-alert',
             self::Expired => 'clock',
             self::Sold => 'hand-thumb-up',
             self::Archived => 'archive-box',
@@ -62,7 +65,7 @@ enum ListingEventType: string
             self::Published, self::Resumed, self::Confirmed, self::Unsuspended => 'lime',
             self::Sold => 'blue',
             self::Expired, self::ReminderSent => 'amber',
-            self::Suspended => 'red',
+            self::Suspended, self::ReminderFailed => 'red',
             default => 'zinc',
         };
     }

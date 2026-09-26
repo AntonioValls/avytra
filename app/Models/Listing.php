@@ -4,9 +4,11 @@ namespace App\Models;
 
 use App\Concerns\TracksAuthorship;
 use App\Enums\ContactMethod;
+use App\Enums\ListingEventType;
 use App\Enums\ListingStatus;
 use App\Enums\OperationType;
 use App\Enums\PriceDisclosure;
+use App\Enums\ReminderStage;
 use Carbon\CarbonImmutable;
 use Database\Factories\ListingFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -246,6 +248,51 @@ class Listing extends Model
     }
 
     /**
+     * Published listings whose reminder of the given stage is due and not sent yet. A listing
+     * already past the next threshold is left to that step, so each run sends at most one email.
+     *
+     * @param  Builder<Listing>  $query
+     * @return Builder<Listing>
+     */
+    #[Scope]
+    protected function dueForReminder(Builder $query, ReminderStage $stage): Builder
+    {
+        return $query->where('status', ListingStatus::Published)
+            ->whereNull($stage->sentAtColumn())
+            ->where('last_confirmed_at', '<=', now()->subDays($stage->days()))
+            ->where('last_confirmed_at', '>', now()->subDays($stage->nextThresholdDays()));
+    }
+
+    /**
+     * Paused automatically within the admin review window.
+     *
+     * @param  Builder<Listing>  $query
+     * @return Builder<Listing>
+     */
+    #[Scope]
+    protected function expiredRecently(Builder $query): Builder
+    {
+        return $query->where('status', ListingStatus::Expired)
+            ->where('expired_at', '>=', now()->subDays((int) config('avytra.freshness.expired_review_days')));
+    }
+
+    /**
+     * Listings whose latest reminder or pause email could not be delivered since the last
+     * confirmation: the superadmin resends by hand (docs/13, "Fallos y reintentos").
+     *
+     * @param  Builder<Listing>  $query
+     * @return Builder<Listing>
+     */
+    #[Scope]
+    protected function withFailedReminder(Builder $query): Builder
+    {
+        return $query->whereHas('events', function (Builder $events): void {
+            $events->where('type', ListingEventType::ReminderFailed)
+                ->whereColumn('listing_events.created_at', '>=', 'listings.last_confirmed_at');
+        });
+    }
+
+    /**
      * Published listings that the scheduler must pause.
      *
      * @param  Builder<Listing>  $query
@@ -292,6 +339,16 @@ class Listing extends Model
     public function daysSinceConfirmation(): ?int
     {
         return $this->last_confirmed_at === null ? null : (int) $this->last_confirmed_at->diffInDays(now());
+    }
+
+    /**
+     * The latest undelivered reminder or pause email since the last confirmation, if any.
+     */
+    public function latestFailedReminder(): ?ListingEvent
+    {
+        return $this->events
+            ->first(fn (ListingEvent $event): bool => $event->type === ListingEventType::ReminderFailed
+                && ($this->last_confirmed_at === null || $event->created_at === null || $event->created_at->greaterThanOrEqualTo($this->last_confirmed_at)));
     }
 
     public function hasBeenPublished(): bool

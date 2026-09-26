@@ -16,7 +16,7 @@ Route::middleware(['auth', 'verified', 'superadmin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-        Route::view('/', 'admin.index')->name('index');
+        Route::livewire('/', 'pages::admin.index')->name('index');
 
         Route::livewire('empresas', 'pages::admin.businesses.index')->name('businesses.index');
         // The shared form receives admin=true through its mount() and shows the owner selector.

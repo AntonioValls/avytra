@@ -6,6 +6,7 @@ use App\Actions\Listings\ConfirmListingAvailability;
 use App\Actions\Listings\MarkListingAsSold;
 use App\Actions\Listings\PauseListing;
 use App\Actions\Listings\PublishListing;
+use App\Actions\Listings\ResendFailedReminder;
 use App\Actions\Listings\ResumeListing;
 use App\Actions\Listings\SuspendListing;
 use App\Actions\Listings\UnsuspendListing;
@@ -100,6 +101,17 @@ new class extends Component {
         $this->authorize('confirm', $listing);
 
         $this->run(fn () => $action->handle($listing, $this->actor(), 'admin'), __('Availability confirmed on behalf of the owner.'));
+    }
+
+    /**
+     * Resends the reminder or pause email that could not be delivered (docs/13).
+     */
+    public function resendReminder(ResendFailedReminder $action): void
+    {
+        $listing = $this->fresh()->load('events');
+        $this->authorize('confirm', $listing);
+
+        $this->run(fn () => $action->handle($listing, $this->actor()), __('Email sent again to the owner.'));
     }
 
     public function markSold(MarkListingAsSold $action): void
@@ -263,6 +275,16 @@ new class extends Component {
                     @endforeach
                 </ul>
             </flux:callout.text>
+        </flux:callout>
+    @endif
+
+    @if ($failedReminder = $listing->latestFailedReminder())
+        <flux:callout icon="bell-alert" variant="danger">
+            <flux:callout.heading>{{ __('The email of :date could not be delivered.', ['date' => $failedReminder->created_at?->translatedFormat('j M Y, H:i')]) }}</flux:callout.heading>
+            <flux:callout.text>{{ __('Nothing is retried automatically. Check the owner\'s address (:email) and send it again, or confirm on their behalf.', ['email' => $listing->business->owner->email]) }}</flux:callout.text>
+            <x-slot name="actions">
+                <flux:button size="sm" variant="primary" icon="paper-airplane" wire:click="resendReminder">{{ __('Resend') }}</flux:button>
+            </x-slot>
         </flux:callout>
     @endif
 

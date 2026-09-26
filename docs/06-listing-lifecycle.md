@@ -90,6 +90,8 @@ Cualquier otra transición lanza `App\Exceptions\InvalidListingTransition`.
 
 Implementado en Phase 3: además de los Actions de transición existen `CreateListingDraft` (aplica la invariante de una publicación abierta por empresa y permite copiar una anterior), `UpdateListing` (contenido, tipos de operación y métricas; nunca el estado), `DeleteListingDraft` y `ChangeListingSlug`. El trait `App\Actions\Listings\Concerns\RecordsListingEvents` centraliza la comprobación de la tabla de transiciones, el registro en `listing_events` (con `on_behalf_of_user_id` cuando actúa el superadmin) y la auditoría. `ResumeListing` y `ConfirmListingAvailability` reciben el canal (`dashboard`, `email_link`, `admin`) y lo guardan en el payload del evento.
 
+Implementado en Phase 7: `ExpireListing` envía la notificación `ListingExpired`; `SendListingFreshnessReminder` y `ResendFailedReminder` (avisos de vigencia y reenvío manual por el superadmin) se apoyan en el mismo trait y registran `reminder_sent`; el evento `reminder_failed` lo escribe el método `failed()` de las notificaciones. Ver [13-freshness-and-notifications.md](13-freshness-and-notifications.md).
+
 ## Vista del usuario (badges en panel)
 
 | Estado / condición | Badge | Color Flux |

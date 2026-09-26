@@ -75,6 +75,8 @@ new class extends Component {
             })
             ->when(ListingStatus::tryFrom($this->status), fn (Builder $query, ListingStatus $status) => $query->where('status', $status))
             ->when($this->condition === 'needs_confirmation', fn (Builder $query) => $query->needingConfirmation())
+            ->when($this->condition === 'expired_recently', fn (Builder $query) => $query->expiredRecently())
+            ->when($this->condition === 'failed_reminder', fn (Builder $query) => $query->withFailedReminder())
             ->when($this->condition === 'recent', fn (Builder $query) => $query->where('published_at', '>=', now()->subDay()))
             ->latest('updated_at')
             ->orderByDesc('id')
@@ -107,6 +109,8 @@ new class extends Component {
         <flux:select variant="listbox" wire:model.live="condition" :placeholder="__('Any condition')">
             <flux:select.option value="">{{ __('Any condition') }}</flux:select.option>
             <flux:select.option value="needs_confirmation">{{ __('Needs confirmation') }}</flux:select.option>
+            <flux:select.option value="expired_recently">{{ __('Paused automatically in the last :days days', ['days' => (int) config('avytra.freshness.expired_review_days')]) }}</flux:select.option>
+            <flux:select.option value="failed_reminder">{{ __('Undelivered reminders') }}</flux:select.option>
             <flux:select.option value="recent">{{ __('Published in the last 24 hours') }}</flux:select.option>
         </flux:select>
     </div>

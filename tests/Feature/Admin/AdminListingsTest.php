@@ -1,10 +1,14 @@
 <?php
 
+use App\Enums\ListingEventType;
 use App\Enums\ListingStatus;
+use App\Enums\ReminderStage;
 use App\Models\AuditLog;
 use App\Models\Business;
 use App\Models\Listing;
 use App\Models\User;
+use App\Notifications\ListingExpired;
+use App\Notifications\ListingFreshnessReminder;
 use App\Notifications\ListingSuspended;
 use Illuminate\Support\Facades\Notification;
 use Livewire\Livewire;
@@ -156,4 +160,62 @@ test('a user who is not the owner nor superadmin cannot even open the admin deta
     $this->actingAs(User::factory()->create());
 
     Livewire::test('pages::admin.listings.show', ['listing' => $listing])->assertForbidden();
+});
+
+test('the superadmin filters the listings paused automatically and those with undelivered reminders', function () {
+    $expired = Listing::factory()->expired()->create(['title' => 'Pausada automáticamente']);
+    $failed = Listing::factory()->published()->create(['title' => 'Aviso no entregado']);
+    $failed->events()->create(['type' => ListingEventType::ReminderFailed, 'payload' => ['stage' => 'first']]);
+    Listing::factory()->published()->create(['title' => 'Publicada sana']);
+
+    actingAsSuperadmin();
+
+    Livewire::test('pages::admin.listings.index')
+        ->set('condition', 'expired_recently')
+        ->assertSee('Pausada automáticamente')
+        ->assertDontSee('Aviso no entregado')
+        ->assertDontSee('Publicada sana')
+        ->set('condition', 'failed_reminder')
+        ->assertSee('Aviso no entregado')
+        ->assertDontSee('Pausada automáticamente');
+});
+
+test('the superadmin resends an undelivered reminder or pause email from the detail page', function () {
+    Notification::fake();
+    $admin = actingAsSuperadmin();
+
+    $published = Listing::factory()->needingConfirmation()->create(['first_reminder_sent_at' => now()->subDay()]);
+    $published->events()->create(['type' => ListingEventType::ReminderFailed, 'payload' => ['stage' => 'first']]);
+
+    $expired = Listing::factory()->expired()->create();
+    $expired->events()->create(['type' => ListingEventType::ReminderFailed, 'payload' => ['stage' => 'expired']]);
+
+    Livewire::test('pages::admin.listings.show', ['listing' => $published])
+        ->assertSee(__('Resend'))
+        ->call('resendReminder')
+        ->assertSee(__('Reminder sent'));
+
+    Livewire::test('pages::admin.listings.show', ['listing' => $expired])
+        ->call('resendReminder');
+
+    Notification::assertSentTo($published->owner(), ListingFreshnessReminder::class, fn ($notification) => $notification->stage === ReminderStage::First);
+    Notification::assertSentTo($expired->owner(), ListingExpired::class);
+
+    expect($published->events()->where('type', ListingEventType::ReminderSent)->sole()->payload['resent'])->toBeTrue()
+        ->and(AuditLog::where('action', 'listing.reminder_resent_by_admin')->where('actor_user_id', $admin->id)->count())->toBe(2);
+});
+
+test('the resend button is not offered when no reminder failed and calling it sends nothing', function () {
+    Notification::fake();
+    actingAsSuperadmin();
+    $listing = Listing::factory()->published()->create();
+
+    Livewire::test('pages::admin.listings.show', ['listing' => $listing])
+        ->assertDontSee(__('Resend'))
+        ->call('resendReminder')
+        ->assertOk();
+
+    Notification::assertNothingSent();
+
+    expect($listing->events()->count())->toBe(0);
 });

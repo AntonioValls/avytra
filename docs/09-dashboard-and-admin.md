@@ -35,6 +35,8 @@ Acciones por estado:
 |---|---|
 | `draft` | Continuar (wizard), Eliminar |
 | `published` | Ver, Editar, Sigue disponible (si necesita confirmación; siempre disponible), Pausar, Marcar como vendida |
+
+Phase 7: cuando `needsConfirmation()` es cierto, "Sigue disponible" se muestra además como botón primario visible en la fila (escritorio) y en la tarjeta (móvil), no solo en el menú.
 | `paused` | Ver (privado), Editar, Reactivar, Marcar como vendida, Archivar |
 | `expired` | Ver (privado), Editar, Reactivar (= confirmar), Marcar como vendida, Archivar |
 | `sold` | Ver, Archivar, "Publicar de nuevo" (crea nueva publicación desde esta) |
@@ -79,10 +81,10 @@ Mismo layout de app con una sección de navegación "Administración" visible so
 
 | Ruta | Contenido |
 |---|---|
-| `/admin` | Resumen operativo: publicaciones que necesitan confirmación, pausadas automáticamente en los últimos 30 días, reportes abiertos, últimas publicaciones, últimos usuarios. Números y listas, no gráficos. |
+| `/admin` | Resumen operativo: publicaciones que necesitan confirmación, pausadas automáticamente en los últimos 30 días (`avytra.freshness.expired_review_days`), avisos no entregados, reportes abiertos, últimas publicaciones, últimos usuarios. Números y listas, no gráficos. Phase 7: `pages::admin.index`; cada tarjeta enlaza al listado filtrado (`condicion=needs_confirmation|expired_recently|failed_reminder`). |
 | `/admin/usuarios` | Tabla con búsqueda; ver detalle (empresas y publicaciones); crear usuario en nombre de otra persona (nombre, email, teléfono; contraseña aleatoria; opción de enviar email de "establece tu contraseña"). |
 | `/admin/empresas` | Tabla con filtros (propietario, tipo, sector); crear/editar con selector de propietario; cambiar propietario (con confirmación y audit). |
-| `/admin/publicaciones` | Tabla con filtros por texto, estado y condición (necesita confirmación, publicadas en 24 h). El detalle `/admin/publicaciones/{listing}` concentra las acciones: publicar, pausar, reactivar, confirmar en nombre del propietario, marcar vendida, archivar, suspender (con motivo), levantar suspensión, cambiar URL (con redirección). Timeline de eventos (`flux:timeline` Pro). Phase 3. |
+| `/admin/publicaciones` | Tabla con filtros por texto, estado y condición (necesita confirmación, publicadas en 24 h). El detalle `/admin/publicaciones/{listing}` concentra las acciones: publicar, pausar, reactivar, confirmar en nombre del propietario, marcar vendida, archivar, suspender (con motivo), levantar suspensión, cambiar URL (con redirección), reenviar un aviso no entregado (Phase 7: callout con el fallo y botón "Reenviar"). Timeline de eventos (`flux:timeline` Pro). Phase 3. |
 | `/admin/reportes` | Bandeja de reportes: abrir, ver publicación, resolver (con acción rápida: pausar/suspender/archivar) o descartar. Phase 4: `pages::admin.reports.index`, filtro por estado en la URL (`estado`), modal de resolución con notas (usadas como motivo si se suspende) y audit `listing_report.resolved|dismissed`. |
 | `/admin/auditoria` | Audit log filtrable por actor, acción, recurso. |
 

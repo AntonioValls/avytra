@@ -232,7 +232,12 @@ new class extends Component {
                             <flux:table.cell>{{ $listing->last_confirmed_at?->translatedFormat('j M Y') ?? '—' }}</flux:table.cell>
                             <flux:table.cell>{{ $listing->status === \App\Enums\ListingStatus::Published ? $listing->next_confirmation_at?->translatedFormat('j M Y') : '—' }}</flux:table.cell>
                             <flux:table.cell align="end">
-                                @include('partials.listing-actions', ['listing' => $listing])
+                                <div class="flex items-center justify-end gap-2">
+                                    @if ($listing->needsConfirmation())
+                                        <flux:button size="sm" variant="primary" icon="check-badge" wire:click="confirmAvailability({{ $listing->id }})">{{ __('Still available') }}</flux:button>
+                                    @endif
+                                    @include('partials.listing-actions', ['listing' => $listing])
+                                </div>
                             </flux:table.cell>
                         </flux:table.row>
                     @endforeach
@@ -257,6 +262,9 @@ new class extends Component {
                             <span class="text-xs text-slate">{{ __('Confirmed :date', ['date' => $listing->last_confirmed_at->translatedFormat('j M Y')]) }}</span>
                         @endif
                     </div>
+                    @if ($listing->needsConfirmation())
+                        <flux:button size="sm" variant="primary" icon="check-badge" wire:click="confirmAvailability({{ $listing->id }})">{{ __('Still available') }}</flux:button>
+                    @endif
                 </flux:card>
             @endforeach
 

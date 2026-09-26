@@ -117,6 +117,11 @@ class AppServiceProvider extends ServiceProvider
             return Limit::perHour(config('avytra.media.upload_rate_limit_per_hour'))->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip()));
         });
 
+        // Confirmation page linked from reminder emails (docs/16), per authenticated user.
+        RateLimiter::for('confirmation', function (Request $request) {
+            return Limit::perHour(config('avytra.rate_limits.confirmation_per_hour'))->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip()));
+        });
+
         // Address search in the location picker (LocationPickerComponent), per authenticated user.
         RateLimiter::for('geocode', function (Request $request) {
             return Limit::perHour(config('avytra.geocoding.rate_limit_per_hour'))->by((string) ($request->user()?->getAuthIdentifier() ?? $request->ip()));

@@ -2,9 +2,9 @@
 
 ## Current phase
 
-**Phase 6 — Medios: implementada, pendiente de revisión visual del propietario** (última tarea de la Definition of Done; en especial el paso 7 del wizard y la sección de imágenes del formulario de empresa, que requieren sesión iniciada). Al aprobarla, comienza Phase 7 — Sistema de vigencia (sin dependencias nuevas).
+**Phase 7 — Sistema de vigencia: implementada y verificada (tests y navegador), pendiente de revisión del propietario.** Al aprobarla, comienza Phase 8 — Administración y asistencia. Fases cerradas: 0 a 7 (8 de 11); quedan 8, 9 y 10.
 
-Phase 5 se dio por aprobada el 2026-09-23 al pedir el propietario el inicio de Phase 6; esa misma petición se tomó como aprobación de la dependencia `spatie/laravel-medialibrary` (ADR-006), igual que se hizo con `maplibre-gl` en Phase 5.
+Phase 6 se dio por aprobada el 2026-09-26 al pedir el propietario el inicio de Phase 7 (sin dependencias nuevas). Phase 5 se dio por aprobada el 2026-09-23 al pedir el inicio de Phase 6; esa petición se tomó como aprobación de `spatie/laravel-medialibrary` (ADR-006), igual que `maplibre-gl` en Phase 5.
 
 ## Completed
 
@@ -33,18 +33,30 @@ Phase 5 se dio por aprobada el 2026-09-23 al pedir el propietario el inicio de P
 - Público: `PublicImage` + `PublicListingPresenter::{coverImage, galleryImages, logoImage, ogImageUrl}`; tarjetas con `srcset`, ficha con galería y lightbox, `og:image`, `Offer.image`; placeholder de marca sin imágenes o mientras la cola no ha generado la conversión.
 - Verificado en el navegador integrado con imágenes generadas sobre la empresa de demo (ficha: portada, miniaturas, lightbox con flechas y pie; explorar: tarjeta con portada; móvil sin scroll horizontal; sin errores de consola; solo URLs `.webp` de conversión en el HTML). El paso 7 y el formulario solo están verificados con tests.
 
+### Phase 7 — Sistema de vigencia (2026-09-26)
+- Comando `avytra:listings:process-freshness` (`--dry-run`), scheduler hourly `withoutOverlapping`, enum `ReminderStage`, Actions `SendListingFreshnessReminder`, `ResendFailedReminder` y `ExpireListing` con notificación; notificaciones `ListingFreshnessReminder` (dos etapas) y `ListingExpired` con `failed()` → evento `reminder_failed`; tema de correo `avytra`.
+- `ConfirmationLink` (firma temporal, validación sobre la URL canónica) y página autenticada `/panel/publicaciones/{listing}/confirmar` con limitador `confirmation`; botón "Sigue disponible" visible en el panel; resumen operativo real en `/admin`, filtros de caducadas y avisos fallidos, reenvío desde el detalle. Detalle en `CHANGELOG.md` y `docs/13`.
+- Verificado en el navegador integrado con el usuario superadmin sembrado: email de primer aviso con el tema de marca; enlace firmado → login → aterrizaje en la página de confirmación (`intended`); clic en "Sí, sigue disponible" → "Gracias, tu publicación sigue vigente hasta el …"; resumen operativo con contadores y listas; detalle admin; móvil sin scroll horizontal; sin errores de consola propios.
+
 ## In progress
 
 - Nada.
 
 ## Next
 
-- Revisión visual del propietario (requiere `npm run build` o `composer run dev` y un worker de cola: `php artisan queue:work` o `composer run dev`): en `/panel/empresas` editar la empresa de demo y, al final del formulario, subir portada, varias fotos de galería y un logo; arrastrar para reordenar, editar un alt, quitar una imagen; comprobar el estado "Procesando la imagen…" hasta que el worker genere las conversiones. Repetir en el paso 7 del wizard (`/panel/publicaciones/{id}/editar?paso=7`) y ver la portada en la vista previa del paso 8 y en la ficha pública. La empresa de demo ya tiene cuatro imágenes generadas (portada verde, dos de galería y un logo) que se pueden quitar desde el formulario.
-- Phase 7 — Sistema de vigencia (comando `avytra:listings:process-freshness`, recordatorios, confirmación de un clic, pausa automática). Sin dependencias nuevas.
+- Revisión del propietario de Phase 7. Para probar en local: `php artisan avytra:listings:process-freshness --dry-run` (lista lo que haría), `php artisan schedule:list`, y con `MAIL_MAILER=log` los emails quedan en `storage/logs/laravel.log`. Para ver un aviso real: poner `last_confirmed_at` de una publicación 45 días atrás, ejecutar el comando sin `--dry-run` con un worker de cola (`php artisan queue:work`) y abrir el enlace del email. La publicación de demo se confirmó durante la verificación (día 0 otra vez).
+- Pendiente de revisión visual del propietario desde Phase 6: paso 7 del wizard y sección de imágenes del formulario de empresa (subida, reordenación, alt, borrado; requiere worker de cola).
+- Phase 8 — Administración y asistencia.
 
 ## Blockers
 
 - Ninguno.
+- Notas aceptadas de Phase 7:
+  - Cada ejecución del comando envía como máximo un email por publicación: entre el segundo umbral y la pausa solo se manda el segundo aviso (marcando ambos flags); por encima de la pausa se pausa sin avisos (docs/13). Tras un scheduler parado varios días, una publicación puede pasar a `expired` sin avisos previos: el email de pausa explica cómo reactivar.
+  - Las notificaciones en cola no admiten `ShouldBeUnique`; las barreras contra duplicados son el flag escrito antes de encolar y `withoutOverlapping()`.
+  - `ConfirmationLink::isValid()` recalcula la firma sobre `route('panel.listings.confirm', [...])`, no sobre la URL de la petición: funciona detrás de proxies y en las peticiones de Livewire (y en `Livewire::withQueryParams()` en tests). Con enlace caducado la página no ofrece el botón (403 si se invoca la acción) y remite al panel, donde el botón sigue disponible.
+  - El `role` del usuario `test@example.com` puede perderse al recrear la base de datos local; se restaura con `php artisan avytra:superadmin test@example.com`.
+  - En producción hacen falta el scheduler (`php artisan schedule:run` cada minuto) y un worker de cola para que salgan los emails.
 - Notas aceptadas de Phase 6:
   - El original subido nunca se sirve: vive en el disco privado y solo se usa para (re)generar conversiones (`php artisan media-library:regenerate` si cambian los tamaños). En producción hace falta `php artisan storage:link` y un worker de cola.
   - `PublicImage::fromMedia()` devuelve `null` mientras falte alguna conversión pedida: las vistas públicas muestran el placeholder hasta que la cola termina; el componente del panel muestra "Procesando la imagen…" y hace `wire:poll.5s`.
@@ -54,7 +66,7 @@ Phase 5 se dio por aprobada el 2026-09-23 al pedir el propietario el inicio de P
   - `phpunit.xml` fija `memory_limit=1G`: las conversiones con GD a lo largo de toda la suite agotan los 128M del CLI.
   - Notas de Phase 5 que siguen vigentes: `Geocoder::isAvailable()`; `LocationPickerComponent` como clase base; montaje del mapa por `x-data`; borrar `public/hot` si queda huérfano.
   - Notas de Phase 4 que siguen vigentes: rutas del panel `panel.listings.*`; `tipo`/`operacion` en explorar; `robots.txt`, sitemap, `ItemList` y 301 de `?sector=` en Phase 9; `MarketplaceAggregates` cachea arrays planos; el compilador single-file no admite `#[Layout]` delante de `new class`; `throttle:public` no cubre `/livewire/update`.
-  - Notas de Phase 3 que siguen vigentes: `title`/`slug` nullables hasta publicar; `ExpireListing` no notifica (Phase 7); el limitador `register` se aplica en Phase 10.
+  - Notas de Phase 3 que siguen vigentes: `title`/`slug` nullables hasta publicar; el limitador `register` se aplica en Phase 10 (`ExpireListing` notifica desde Phase 7).
 
 ## Important decisions
 
@@ -62,8 +74,8 @@ Ver `docs/DECISIONS.md` (ADR-001…017; ADR-006 aceptado con resultado). Decisio
 
 ## Last tests executed
 
-- 2026-09-23 — `composer test` (Pint + Larastan nivel 7 + Pest): **436 tests, todo en verde** (410 de Phase 5 más 26 nuevos). Nuevos: `Media/BusinessImagesTest`, `Actions/Media/BusinessImageActionsTest`, `Public/ListingImagesTest`.
+- 2026-09-26 — `composer test` (Pint + Larastan nivel 7 + Pest): **463 tests, todo en verde** (436 de Phase 6 más 27 nuevos). Nuevos: `Freshness/ProcessListingFreshnessTest`, `Freshness/FreshnessNotificationsTest`, `Listings/ListingConfirmationPageTest`, `Console/ScheduleTest`, `Admin/AdminSummaryTest`; ampliado `Admin/AdminListingsTest`.
 
 ## Last updated
 
-2026-09-23 — Phase 6 implementada, verificada con tests y en navegador (público); pendiente de revisión visual del paso 7 y del formulario de empresa por el propietario.
+2026-09-26 — Phase 7 implementada, verificada con tests y en navegador; pendiente de revisión del propietario.

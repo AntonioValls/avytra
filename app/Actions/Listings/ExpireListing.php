@@ -6,13 +6,13 @@ use App\Actions\Listings\Concerns\RecordsListingEvents;
 use App\Enums\ListingEventType;
 use App\Enums\ListingStatus;
 use App\Models\Listing;
+use App\Notifications\ListingExpired;
 use App\Support\Audit\AuditLogger;
 use Illuminate\Support\Facades\DB;
 
 /**
  * published → expired. Run by the system (no actor) when availability was not confirmed
- * in time. Data intact; the owner reactivates with one click. The ListingExpired
- * notification is sent by the freshness command (Phase 7).
+ * in time. Data intact; the owner reactivates with one click and is told so by email.
  */
 class ExpireListing
 {
@@ -28,6 +28,8 @@ class ExpireListing
             $listing->save();
 
             $this->recordEvent($listing, ListingEventType::Expired, null);
+
+            $listing->owner()->notify(new ListingExpired($listing));
 
             return $listing;
         });

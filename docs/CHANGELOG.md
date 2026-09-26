@@ -2,6 +2,23 @@
 
 Formato: una sección por fase cerrada, con fecha. Cambios de documentación relevantes también se anotan.
 
+## [Phase 7] — 2026-09-26 — Sistema de vigencia
+
+### Añadido
+- Comando `avytra:listings:process-freshness {--dry-run}` (`App\Console\Commands\ProcessListingFreshness`): tres pasadas idempotentes (primer aviso, segundo aviso, pausa automática) sobre los scopes `dueForReminder(ReminderStage)` y `dueForExpiration()` con `chunkById(200)`; como máximo un email por publicación y ejecución. Programado cada hora con `withoutOverlapping()` en `routes/console.php`.
+- Enum `App\Enums\ReminderStage` (`first`, `second`); `ListingEventType::ReminderFailed`.
+- Actions `SendListingFreshnessReminder` (flag `*_reminder_sent_at` y evento `reminder_sent` antes de encolar) y `ResendFailedReminder` (reenvío manual por el superadmin con audit `listing.reminder_resent_by_admin`); `ExpireListing` envía ahora `ListingExpired`.
+- Notificaciones `ListingFreshnessReminder` (dos etapas) y `ListingExpired` en cola con `tries` y `backoff`; `failed()` registra `reminder_failed` en el historial. Tema de correo de marca `avytra` (`config/mail.php` → `markdown`, `resources/views/vendor/mail/html/themes/avytra.css`).
+- `App\Support\Listings\ConfirmationLink` (`for()` con firma temporal de `confirmation_link_ttl_days`, `isValid()` sobre la URL canónica de la ruta).
+- Página autenticada `pages::listings.confirm` en `/panel/publicaciones/{listing}/confirmar` (ADR-007): un botón "Sí, sigue disponible" (`confirm` o `resume` con canal `email_link`), "Reactivar" para pausadas, secundarios "Marcar como vendida" y "Pausar", explicación con enlace caducado. Limitador nombrado `confirmation` (`avytra.rate_limits.confirmation_per_hour`, 30/hora por usuario).
+- Panel: botón "Sigue disponible" visible en fila y tarjeta cuando la publicación necesita confirmación.
+- Admin: resumen operativo real `pages::admin.index` (necesitan confirmación, pausadas automáticamente en `avytra.freshness.expired_review_days`, avisos no entregados, reportes abiertos, últimas publicaciones y usuarios); filtros `expired_recently` y `failed_reminder` en `/admin/publicaciones`; callout y botón "Reenviar" en el detalle. Scopes `expiredRecently()`, `withFailedReminder()` y `Listing::latestFailedReminder()`.
+- Tests: `Freshness/ProcessListingFreshnessTest`, `Freshness/FreshnessNotificationsTest`, `Listings/ListingConfirmationPageTest`, `Console/ScheduleTest`, `Admin/AdminSummaryTest`; ampliado `Admin/AdminListingsTest`. 45 cadenas nuevas en `lang/es.json`.
+
+### Cambiado
+- `Route::view('admin.index')` pasa a `Route::livewire('pages::admin.index')`; se elimina la vista placeholder `resources/views/admin/index.blade.php`.
+- Documentación: docs 06, 09, 13 y 16 con notas de implementación, STATUS.
+
 ## [Phase 6] — 2026-09-23 — Medios
 
 ### Añadido
